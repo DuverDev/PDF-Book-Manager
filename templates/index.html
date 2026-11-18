@@ -1,0 +1,1723 @@
+<!DOCTYPE html>
+<html lang="es">
+<script>
+try {
+  var _t = localStorage.getItem('pbm-theme') || localStorage.getItem('wbv-theme') || 'light';
+  document.documentElement.setAttribute('data-theme', _t);
+  var _l = localStorage.getItem('pbm-lang') || localStorage.getItem('wbv-lang');
+  if (!_l && navigator.language && navigator.language.toLowerCase().startsWith('en')) _l = 'en';
+  document.documentElement.setAttribute('data-lang', _l || 'es');
+} catch(e) {}
+</script>
+<head>
+<meta charset="UTF-8">
+<link rel="icon" href="/static/app_icon_256.png" type="image/png">
+<title>PDF Book Manager — Gestor de Libros PDF</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  color-scheme:dark;
+  --bg:#0b141a;--hdr:#1f2c34;--side:#111b21;--chat:#0a1014;
+  --input:#2a3942;--border:#233138;--bubble-s:#005c4b;--bubble-r:#202c33;
+  --accent:#00a884;--accent-h:#06cf9c;--text:#e9edef;--dim:#8696a0;
+  --danger:#ef4444;--danger-h:#dc2626;--warn:#f59e0b;--info:#3b82f6;
+  --match:#cf9a0c;--match-cur:#facc15;
+  --meta-c:rgba(255,255,255,.45);--hover:rgba(255,255,255,.08);
+  --sb:rgba(255,255,255,.13);--sb-h:rgba(255,255,255,.22);
+  --bub-sh:0 1px 2px rgba(0,0,0,.18);
+}
+[data-theme="light"]{
+  color-scheme:light;
+  --bg:#f0f2f5;--hdr:#fff;--side:#fff;--chat:#efeae2;
+  --input:#f0f2f5;--border:#d1d7db;--bubble-s:#d9fdd3;--bubble-r:#fff;
+  --accent:#008069;--accent-h:#00a884;--text:#111b21;--dim:#667781;
+  --danger:#ef4444;--danger-h:#dc2626;--warn:#d97706;--info:#2563eb;
+  --match:#e67e00;--match-cur:#f59e0b;
+  --meta-c:rgba(0,0,0,.5);--hover:rgba(0,0,0,.05);
+  --sb:rgba(0,0,0,.12);--sb-h:rgba(0,0,0,.2);
+  --bub-sh:0 1px 3px rgba(0,0,0,.08);
+}
+html,body{height:100%;overflow:hidden}
+body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text);display:flex;flex-direction:column}
+
+/* ── Header ── */
+.hdr{background:var(--hdr);height:54px;display:flex;align-items:center;padding:0 18px;border-bottom:1px solid var(--border);flex-shrink:0;gap:10px}
+.hdr-brand{display:flex;align-items:center;gap:10px}
+.hdr-logo{width:30px;height:30px;border-radius:8px;background:var(--accent);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;color:#fff;flex-shrink:0}
+.hdr h1{font-size:15px;font-weight:600;letter-spacing:-.3px;white-space:nowrap}
+.hdr-folder-pill{background:var(--input);border:1px solid var(--border);padding:5px 10px;border-radius:6px;font-size:11px;color:var(--dim);max-width:240px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer;transition:border .15s}
+.hdr-folder-pill:hover{border-color:var(--accent);color:var(--text)}
+.hdr-r{margin-left:auto;display:flex;gap:7px;align-items:center}
+.func-group{display:flex;align-items:center;gap:5px;background:var(--input);padding:3px 5px;border-radius:9px;border:1px solid var(--border)}
+.func-select{width:auto!important;min-width:255px;padding:5px 28px 5px 9px!important;font-size:12px!important;font-weight:500;border:none!important;background-color:transparent!important}
+.sort-select{width:auto!important;min-width:190px;padding:5px 26px 5px 9px!important;font-size:11.5px!important}
+.sec h3.col-hdr{cursor:pointer;user-select:none;justify-content:space-between}
+.sec h3.col-hdr:hover{color:var(--text)}
+.sec h3 .chev{font-size:11px;transition:transform .15s;margin-left:6px}
+.sec.collapsed .sec-content{display:none}
+.sec.collapsed h3 .chev{transform:rotate(-90deg)}
+.sec.collapsed h3{margin-bottom:0}
+
+/* ── Buttons ── */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:5px;padding:7px 13px;border:none;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;transition:all .15s;font-family:inherit;color:#fff;white-space:nowrap}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn-p{background:var(--accent)}.btn-p:hover:not(:disabled){background:var(--accent-h)}
+.btn-info{background:var(--info)}.btn-info:hover:not(:disabled){filter:brightness(1.1)}
+.btn-s{background:var(--input);color:var(--text);border:1px solid var(--border)}.btn-s:hover:not(:disabled){background:var(--border)}
+.btn-d{background:var(--danger)}.btn-d:hover:not(:disabled){background:var(--danger-h)}
+.btn-w{background:var(--warn);color:#fff}.btn-w:hover:not(:disabled){filter:brightness(1.08)}
+.btn-sm{padding:5px 10px;font-size:11px;border-radius:6px}
+.btn-row{display:flex;gap:6px}.btn-row .btn{flex:1}
+.btn-icon{background:none;border:none;color:var(--dim);cursor:pointer;font-size:14px;padding:2px 6px;border-radius:4px;transition:all .12s;margin-left:auto}
+.btn-icon:hover{color:var(--text);background:var(--hover)}
+#lang-btn{font-weight:600}
+
+/* ── Progress Bar Banner ── */
+.prog-panel{background:var(--side);border-bottom:2px solid var(--accent);padding:12px 22px;display:flex;flex-direction:column;gap:8px;flex-shrink:0;box-shadow:0 4px 14px rgba(0,0,0,.22);z-index:20}
+.prog-top{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.prog-title{font-size:13px;font-weight:600;color:var(--text);display:flex;align-items:center;gap:8px}
+.prog-file{font-size:11.5px;color:var(--accent);font-weight:500;max-width:440px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.prog-metrics{display:flex;align-items:center;gap:14px;font-size:11.5px;color:var(--dim);flex-wrap:wrap}
+.prog-metrics span strong{color:var(--text);font-weight:600}
+.prog-metrics .eta-pill{background:rgba(0,168,132,.15);color:var(--accent);padding:3px 9px;border-radius:6px;font-weight:600}
+.prog-bar-wrap{width:100%;height:10px;background:var(--input);border-radius:99px;overflow:hidden;border:1px solid var(--border)}
+.prog-bar-fill{height:100%;width:0%;background:linear-gradient(90deg,var(--accent),var(--accent-h));border-radius:99px;transition:width .2s ease}
+
+/* ── Layout ── */
+.main{display:flex;flex:1;overflow:hidden}
+.side{width:300px;background:var(--side);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow-y:auto;flex-shrink:0}
+.sec{padding:13px 16px;border-bottom:1px solid var(--border)}
+.sec h3{font-size:10px;text-transform:uppercase;letter-spacing:1.2px;color:var(--dim);margin-bottom:10px;font-weight:600;display:flex;align-items:center}
+
+input[type=text],select,textarea{width:100%;padding:7px 10px;background:var(--input);border:1px solid var(--border);border-radius:7px;color:var(--text);font-size:12px;font-family:inherit;outline:none;transition:border .15s}
+input:focus,select:focus,textarea:focus{border-color:var(--accent)}
+input::placeholder,textarea::placeholder{color:var(--dim)}
+select{cursor:pointer;-webkit-appearance:none;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%238696a0' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center;padding-right:28px}
+select option{background:var(--side);color:var(--text)}
+.field{margin-bottom:8px}
+.field label{display:block;font-size:11px;color:var(--dim);margin-bottom:3px;font-weight:500}
+.chk-row{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text);margin:6px 0;cursor:pointer;user-select:none}
+.chk-row input[type=checkbox]{accent-color:var(--accent);width:15px;height:15px;cursor:pointer}
+
+/* ── Navigation List (Sidebar) ── */
+.cl{list-style:none}
+.cl-item{padding:9px 11px;border-radius:8px;cursor:pointer;transition:background .12s;display:flex;align-items:center;gap:10px;margin-bottom:3px}
+.cl-item:hover{background:var(--input)}
+.cl-item.on{background:var(--input);border-left:3px solid var(--accent)}
+.cl-av{width:34px;height:34px;border-radius:50%;background:var(--input);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:600;color:var(--dim);flex-shrink:0}
+.cl-item.on .cl-av{background:var(--accent);color:#fff}
+.cl-info{flex:1;min-width:0}
+.cl-name{font-size:12.5px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cl-meta{font-size:10px;color:var(--dim);margin-top:1px}
+.badge{padding:2px 7px;border-radius:10px;font-size:10.5px;font-weight:600;background:var(--border);color:var(--text)}
+.badge.accent{background:rgba(0,168,132,.2);color:var(--accent)}
+.badge.danger{background:rgba(239,68,68,.2);color:var(--danger)}
+.badge.warn{background:rgba(245,158,11,.2);color:var(--warn)}
+
+/* ── Stats ── */
+.stat{display:flex;justify-content:space-between;padding:3.5px 0;font-size:12px}
+.stat .l{color:var(--dim)}.stat .v{font-weight:600}
+.stat .v.danger{color:var(--danger)}
+.stat .v.accent{color:var(--accent)}
+.stat .v.info{color:var(--info)}
+
+/* ── Main Area ── */
+.chat{flex:1;display:flex;flex-direction:column;overflow:hidden;position:relative}
+.chat-hdr{background:var(--hdr);padding:0 20px;display:flex;align-items:center;border-bottom:1px solid var(--border);flex-shrink:0;height:50px;gap:10px}
+.chat-hdr .title{font-size:13.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.chat-hdr .sub{font-size:11px;color:var(--dim);white-space:nowrap}
+
+.srch{margin-left:auto;display:flex;align-items:center;gap:4px;background:var(--input);border-radius:8px;padding:3px 8px;flex-shrink:0;border:1px solid var(--border)}
+.srch input{background:transparent;border:none;width:210px;padding:3px 6px;font-size:12px;color:var(--text)}
+.srch input:focus{outline:none}
+.srch .cnt{font-size:10px;color:var(--dim);white-space:nowrap;min-width:36px;text-align:center}
+
+/* ── Workspace Content ── */
+.work-body{flex:1;display:flex;overflow:hidden;position:relative}
+.msgs{flex:1;overflow-y:auto;padding:16px 24px;
+  background-color:var(--chat);
+  background-image:url("data:image/svg+xml,%3Csvg width='60' height='60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23ffffff' fill-opacity='.015'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/svg%3E")}
+[data-theme="light"] .msgs{background-image:url("data:image/svg+xml,%3Csvg width='60' height='60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23000000' fill-opacity='.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/svg%3E")}
+
+/* ── Book Cards ── */
+.book-grid{display:flex;flex-direction:column;gap:10px;max-width:1050px;margin:0 auto}
+.book-card{background:var(--bubble-r);border:1px solid var(--border);border-radius:10px;padding:12px 15px;box-shadow:var(--bub-sh);display:flex;gap:14px;align-items:flex-start;transition:border-color .15s;cursor:pointer}
+.book-card:hover{border-color:var(--accent)}
+.book-card.selected{border-color:var(--accent);border-width:2px;background:var(--side)}
+.book-card.dup-card{border-left:4px solid var(--danger)}
+.book-card.keep-card{border-left:4px solid var(--accent)}
+.book-card.ready-card{border-left:4px solid var(--accent)}
+.book-card.pending-card{border-left:4px solid var(--warn)}
+.book-card.unscanned-card{border-left:4px solid var(--info)}
+
+.bc-icon{width:42px;height:52px;background:rgba(0,168,132,.14);border:1px solid rgba(0,168,132,.35);border-radius:6px;display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0;color:var(--accent);font-weight:700;font-size:11px;gap:2px}
+.book-card.dup-card .bc-icon{background:rgba(239,68,68,.14);border-color:rgba(239,68,68,.35);color:var(--danger)}
+.book-card.unscanned-card .bc-icon{background:rgba(59,130,246,.14);border-color:rgba(59,130,246,.35);color:var(--info)}
+.bc-icon small{font-size:9px;font-weight:500;color:var(--dim)}
+
+.bc-main{flex:1;min-width:0}
+.bc-top{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px}
+.bc-title{font-size:14px;font-weight:600;color:var(--text)}
+.bc-author{font-size:12.5px;color:var(--accent);font-weight:500}
+.bc-pills{display:flex;gap:5px;margin-left:auto;flex-wrap:wrap}
+.pill{font-size:10px;padding:2px 8px;border-radius:10px;font-weight:600;background:var(--input);color:var(--dim)}
+.pill.ok{background:rgba(0,168,132,.18);color:var(--accent)}
+.pill.warn{background:rgba(245,158,11,.18);color:var(--warn)}
+.pill.err{background:rgba(239,68,68,.18);color:var(--danger)}
+.pill.src{background:rgba(59,130,246,.16);color:var(--info)}
+
+.bc-rename-box{background:rgba(0,0,0,.16);border-radius:7px;padding:7px 10px;margin:6px 0;font-size:11.5px;display:flex;flex-direction:column;gap:3px}
+[data-theme="light"] .bc-rename-box{background:rgba(0,0,0,.04)}
+.bc-fn-old{color:var(--dim);display:flex;align-items:center;gap:6px;word-break:break-all}
+.bc-fn-new{color:var(--accent);font-weight:600;display:flex;align-items:center;gap:6px;word-break:break-all}
+
+.bc-meta-row{display:flex;flex-wrap:wrap;gap:12px;font-size:11px;color:var(--dim);margin-top:5px}
+.bc-meta-row span strong{color:var(--text);font-weight:500}
+.bc-actions{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
+
+/* ── Right Inspector / Editor Panel ── */
+.inspector{width:380px;background:var(--side);border-left:1px solid var(--border);display:flex;flex-direction:column;overflow-y:auto;flex-shrink:0}
+.ins-hdr{padding:12px 16px;background:var(--hdr);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.ins-hdr h3{font-size:13px;font-weight:600}
+.ins-body{padding:14px 16px;overflow-y:auto;flex:1}
+.ins-foot{padding:12px 16px;border-top:1px solid var(--border);display:flex;flex-direction:column;gap:8px;background:var(--hdr)}
+.meta-compare{background:var(--input);border:1px solid var(--border);border-radius:8px;padding:10px;margin-bottom:12px;font-size:11px}
+.meta-compare h4{font-size:10.5px;text-transform:uppercase;color:var(--dim);margin-bottom:6px;letter-spacing:.6px}
+.mc-row{display:flex;justify-content:space-between;gap:8px;padding:3px 0;border-bottom:1px dashed var(--border)}
+.mc-row:last-child{border-bottom:none}
+.mc-k{color:var(--dim);flex-shrink:0}
+.mc-v{color:var(--text);text-align:right;word-break:break-word}
+
+/* ── Welcome / Empty ── */
+.welcome{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--dim);gap:10px;text-align:center;padding:30px}
+.welcome h2{font-size:22px;font-weight:400;color:var(--text)}
+.welcome p{font-size:13px;max-width:480px;line-height:1.5}
+.spinner{width:18px;height:18px;border:2.5px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;display:inline-block}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ── Toast Notification ── */
+.toast{position:fixed;bottom:22px;right:22px;background:var(--hdr);border:1px solid var(--accent);color:var(--text);padding:11px 18px;border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.4);font-size:12.5px;z-index:300;display:flex;align-items:center;gap:10px;transition:all .2s}
+
+/* ── Modals ── */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.78);z-index:200;display:flex;align-items:center;justify-content:center;padding:20px}
+.modal{background:var(--side);border:1px solid var(--border);border-radius:14px;max-width:600px;width:100%;max-height:88vh;display:flex;flex-direction:column;box-shadow:0 8px 32px rgba(0,0,0,.45)}
+.modal.modal-lg{max-width:860px}
+.modal.modal-xl{max-width:1060px;height:88vh}
+.modal-hdr{padding:16px 22px 12px;border-bottom:1px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:space-between}
+.modal-hdr h2{font-size:16px;font-weight:600}
+.modal-hdr p{font-size:11px;color:var(--dim);margin-top:2px}
+.modal-body{padding:16px 22px;overflow-y:auto;flex:1}
+.modal-body h3{font-size:13px;font-weight:600;margin:14px 0 6px;color:var(--accent)}
+.modal-body h3:first-child{margin-top:0}
+.modal-body p,.modal-body li{font-size:12px;line-height:1.6;color:var(--dim)}
+.modal-body ul{padding-left:18px;margin:4px 0}
+.modal-body a{color:var(--accent);text-decoration:none}
+.modal-foot{padding:14px 22px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:8px;flex-shrink:0}
+
+.manual-tabs{display:flex;gap:4px;margin-bottom:14px;border-bottom:1px solid var(--border);padding-bottom:10px}
+.manual-tab{background:var(--input);border:none;color:var(--dim);padding:7px 14px;border-radius:7px;font-size:11px;cursor:pointer;font-family:inherit;font-weight:500;transition:all .15s}
+.manual-tab.on{background:var(--accent);color:#fff}
+.manual-page{display:none}.manual-page.on{display:block}
+.modal-body .step{display:flex;gap:12px;margin:10px 0;align-items:flex-start}
+.modal-body .step-n{background:var(--accent);color:#fff;width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;margin-top:2px}
+.modal-body .step-t{flex:1}
+.modal-body .step-t strong{color:var(--text);font-size:12px}
+.modal-body .tip{background:rgba(0,168,132,.08);border-left:3px solid var(--accent);padding:8px 12px;border-radius:0 6px 6px 0;margin:10px 0;font-size:11.5px;color:var(--dim);line-height:1.5}
+.modal-body .tip strong{color:var(--accent)}
+.modal-body .warn{background:rgba(239,68,68,.08);border-left:3px solid var(--danger);padding:8px 12px;border-radius:0 6px 6px 0;margin:10px 0;font-size:11.5px;color:var(--dim);line-height:1.5}
+.modal-body .warn strong{color:var(--danger)}
+.modal-body .feat{display:flex;gap:10px;align-items:flex-start;margin:8px 0;padding:8px 10px;background:var(--hover);border-radius:8px}
+.modal-body .feat-icon{font-size:18px;flex-shrink:0;width:28px;text-align:center}
+.modal-body .feat-info strong{color:var(--text);font-size:12px;display:block}
+
+/* ── Duplicate Group Box in Modal ── */
+.dup-grp{background:var(--input);border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:12px}
+.dup-grp-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;font-size:12px;font-weight:600}
+.dup-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 10px;border-radius:7px;background:var(--side);margin-bottom:6px;border-left:3px solid transparent}
+.dup-row.keep{border-left-color:var(--accent)}
+.dup-row.rem{border-left-color:var(--danger)}
+
+.side-foot{margin-top:auto;padding:12px 16px;border-top:1px solid var(--border);text-align:center}
+.side-foot a{color:var(--dim);font-size:11px;text-decoration:none;transition:color .12s}
+.side-foot a:hover{color:var(--accent)}
+.side-foot .brand{font-size:10px;color:var(--dim);margin-top:4px;opacity:.6}
+
+::-webkit-scrollbar{width:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--sb);border-radius:3px}
+::-webkit-scrollbar-thumb:hover{background:var(--sb-h)}
+.hidden{display:none!important}
+</style>
+</head>
+<body>
+
+<header class="hdr">
+  <div class="hdr-brand">
+    <div class="hdr-logo">PDF</div>
+    <h1 data-i18n="appTitle">PDF Book Manager</h1>
+  </div>
+  <div class="hdr-folder-pill" id="hdr-folder" onclick="pickFolder()" title="Clic para elegir otra carpeta">
+    &#128193; <span id="hdr-folder-txt">libros/</span>
+  </div>
+  <div class="hdr-r">
+    <button class="btn btn-s" id="btn-pick" onclick="pickFolder()" data-i18n="btnChangeFolder">&#128194; Cargar Carpeta</button>
+    <div class="func-group" title="Selecciona la función que deseas ejecutar">
+      <select id="hdr-func-select" class="func-select" onchange="syncFuncSelects(this.value)">
+        <option value="analyze_all">&#128269; 1. Analizar Libros (Duplicados + Nombres + Metadatos)</option>
+        <option value="analyze_local">&#9889; 2. Analizar Rápido Local (Sin Internet)</option>
+        <option value="review_dups">&#128465; 3. Revisar y Eliminar Duplicados</option>
+        <option value="apply_both">&#10004; 4. Ejecutar Todo (Renombrar + Metadatos PDF)</option>
+        <option value="apply_rename">&#9998; 5. Ejecutar Solo Renombrado de Archivos</option>
+        <option value="apply_meta">&#127991; 6. Ejecutar Solo Metadatos Internos PDF</option>
+        <option value="reload_folder">&#8635; 7. Recargar Carpeta Actual</option>
+      </select>
+      <button class="btn btn-p btn-sm" id="btn-run-func" onclick="executeSelectedFunction()" data-i18n="btnRunFunc">&#9654; Ejecutar</button>
+    </div>
+    <button class="btn btn-d" id="btn-clear-all" onclick="clearWorkspace()" title="Limpiar lista cargada y reiniciar vista" data-i18n="btnClear">&#129529; Clear</button>
+    <button class="btn btn-s" id="lang-btn" onclick="toggleLang()" title="Language / Idioma">English</button>
+    <button class="btn btn-s" id="manual-btn" onclick="showManual()" data-i18n="manualBtn">Manual</button>
+    <button class="btn btn-s" id="theme-btn" onclick="toggleTheme()">Modo Oscuro</button>
+  </div>
+</header>
+
+<!-- BARRA DE PROGRESO CON HECHOS, FALTANTES Y TIEMPO ESTIMADO -->
+<div class="prog-panel hidden" id="prog-panel">
+  <div class="prog-top">
+    <div class="prog-title">
+      <span class="spinner"></span>
+      <span id="prog-action-label">Analizando libros...</span>
+      <span class="prog-file" id="prog-current-file"></span>
+    </div>
+    <div class="prog-metrics">
+      <span>Progreso: <strong id="prog-pct">0%</strong></span>
+      <span>Hechos: <strong id="prog-done">0</strong> de <strong id="prog-total">0</strong></span>
+      <span>Faltantes: <strong id="prog-rem">0</strong></span>
+      <span>Transcurrido: <strong id="prog-elapsed">00:00</strong></span>
+      <span class="eta-pill" id="prog-eta">Tiempo estimado: calculando...</span>
+      <button class="btn btn-d btn-sm" id="btn-stop-job" onclick="stopActiveJob()">&#9209; Detener</button>
+    </div>
+  </div>
+  <div class="prog-bar-wrap">
+    <div class="prog-bar-fill" id="prog-bar-fill"></div>
+  </div>
+</div>
+
+<div class="main">
+  <!-- BARRA LATERAL IZQUIERDA -->
+  <aside class="side">
+    <div class="sec">
+      <h3 class="col-hdr" onclick="toggleSec(this)">
+        <span data-i18n="batchTitle">Menú de Funciones</span>
+        <span class="chev">&#9662;</span>
+      </h3>
+      <div class="sec-content" style="display:flex;flex-direction:column;gap:8px">
+        <div class="field" style="margin-bottom:2px">
+          <label data-i18n="lblSelectFunc">Selecciona una función a realizar</label>
+          <select id="side-func-select" onchange="syncFuncSelects(this.value)">
+            <option value="analyze_all">&#128269; 1. Analizar Libros (Completo)</option>
+            <option value="analyze_local">&#9889; 2. Analizar Rápido Local (Sin red)</option>
+            <option value="review_dups">&#128465; 3. Revisar y Eliminar Duplicados</option>
+            <option value="apply_both">&#10004; 4. Ejecutar Renombrado + Metadatos</option>
+            <option value="apply_rename">&#9998; 5. Ejecutar Solo Renombrado</option>
+            <option value="apply_meta">&#127991; 6. Ejecutar Solo Metadatos PDF</option>
+            <option value="reload_folder">&#8635; 7. Recargar Carpeta Actual</option>
+          </select>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-p" id="btn-side-run" onclick="executeSelectedFunction()" data-i18n="btnRunFunc">
+            &#9654; Ejecutar Función
+          </button>
+          <button class="btn btn-d" id="btn-side-clear" onclick="clearWorkspace()" data-i18n="btnClear">
+            &#129529; Clear
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="sec">
+      <h3 class="col-hdr" onclick="toggleSec(this)">
+        <span data-i18n="navViews">Vistas de Biblioteca</span>
+        <span class="chev">&#9662;</span>
+      </h3>
+      <div class="sec-content">
+        <ul class="cl" id="view-list">
+          <li class="cl-item on" data-filter="all" onclick="setViewFilter('all')">
+            <div class="cl-av">&#128218;</div>
+            <div class="cl-info">
+              <div class="cl-name" data-i18n="viewAll">Todos los libros</div>
+              <div class="cl-meta" data-i18n="viewAllSub">Cargados de la carpeta</div>
+            </div>
+            <span class="badge" id="bdg-all">0</span>
+          </li>
+          <li class="cl-item" data-filter="pending" onclick="setViewFilter('pending')">
+            <div class="cl-av">&#9998;</div>
+            <div class="cl-info">
+              <div class="cl-name" data-i18n="viewPending">Por renombrar / metadatos</div>
+              <div class="cl-meta" data-i18n="viewPendingSub">Listos para aplicar</div>
+            </div>
+            <span class="badge warn" id="bdg-pending">0</span>
+          </li>
+          <li class="cl-item" data-filter="duplicates" onclick="setViewFilter('duplicates')">
+            <div class="cl-av">&#9888;</div>
+            <div class="cl-info">
+              <div class="cl-name" data-i18n="viewDups">Libros duplicados</div>
+              <div class="cl-meta" data-i18n="viewDupsSub">Exactos y por contenido</div>
+            </div>
+            <span class="badge danger" id="bdg-dups">0</span>
+          </li>
+          <li class="cl-item" data-filter="ready" onclick="setViewFilter('ready')">
+            <div class="cl-av">&#10004;</div>
+            <div class="cl-info">
+              <div class="cl-name" data-i18n="viewReady">Organizados al día</div>
+              <div class="cl-meta" data-i18n="viewReadySub">Nombre y metadatos listos</div>
+            </div>
+            <span class="badge accent" id="bdg-ready">0</span>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="sec">
+      <h3 class="col-hdr" onclick="toggleSec(this)">
+        <span data-i18n="cfgTitle">Configuración y Reglas</span>
+        <span class="chev">&#9662;</span>
+      </h3>
+      <div class="sec-content">
+        <div class="field">
+          <label data-i18n="cfgFolderLabel">Ruta de carpeta activa</label>
+          <div style="display:flex;gap:4px">
+            <input type="text" id="cfg-folder-input" placeholder="C:\Ruta\A\Tus\Libros">
+            <button class="btn btn-s btn-sm" onclick="applyCustomFolderInput()" title="Cargar carpeta">&rarr;</button>
+          </div>
+        </div>
+        <div class="field">
+          <label data-i18n="cfgPatternLabel">Formato de nombre del PDF</label>
+          <select id="cfg-pattern" onchange="onPatternChange()">
+            <option value="{titulo} - {autor}">Título - Autor.pdf (Recomendado)</option>
+            <option value="{autor} - {titulo}">Autor - Título.pdf</option>
+            <option value="{titulo} - {autor} ({año})">Título - Autor (Año).pdf</option>
+            <option value="{autor} - {titulo} ({año})">Autor - Título (Año).pdf</option>
+            <option value="{titulo}">Solo Título.pdf</option>
+          </select>
+        </div>
+        <div class="field">
+          <label data-i18n="cfgDupModeLabel">Al eliminar duplicados</label>
+          <select id="cfg-dupmode">
+            <option value="trash">Enviar a Papelera de reciclaje (Seguro)</option>
+            <option value="folder">Mover a subcarpeta _duplicados/</option>
+            <option value="delete">Eliminar permanentemente del disco</option>
+          </select>
+        </div>
+        <label class="chk-row">
+          <input type="checkbox" id="cfg-online" checked>
+          <span data-i18n="cfgOnlineChk">Consultar Google Books / Open Library</span>
+        </label>
+        <label class="chk-row">
+          <input type="checkbox" id="cfg-recursive" onchange="loadFolderFast()">
+          <span data-i18n="cfgRecursiveChk">Incluir también subcarpetas</span>
+        </label>
+      </div>
+    </div>
+
+    <div class="sec">
+      <h3 class="col-hdr" onclick="toggleSec(this)">
+        <span data-i18n="statsTitle">Estado y Estadísticas</span>
+        <span class="chev">&#9662;</span>
+      </h3>
+      <div class="sec-content">
+        <div class="stat"><span class="l" data-i18n="stTotal">Total cargados</span><span class="v" id="st-total">0</span></div>
+        <div class="stat"><span class="l" data-i18n="stAnalyzed">Analizados / Faltantes</span><span class="v info" id="st-analyzed">0 / 0</span></div>
+        <div class="stat"><span class="l" data-i18n="stRename">Por renombrar</span><span class="v" id="st-rename">0</span></div>
+        <div class="stat"><span class="l" data-i18n="stMeta">Metadatos por diligenciar</span><span class="v" id="st-meta">0</span></div>
+        <div class="stat"><span class="l" data-i18n="stDups">Duplicados detectados</span><span class="v danger" id="st-dups">0</span></div>
+        <div class="stat"><span class="l" data-i18n="stSize">Tamaño biblioteca</span><span class="v" id="st-size">0 B</span></div>
+        <div class="stat"><span class="l" data-i18n="stReclaim">Espacio recuperable</span><span class="v accent" id="st-reclaim">0 B</span></div>
+      </div>
+    </div>
+
+    <div class="side-foot">
+      <a href="#" onclick="showTerms();return false" data-i18n="termsLink">Términos y Condiciones</a>
+      <div class="brand">DMDevLabs &copy; 2026</div>
+    </div>
+  </aside>
+
+  <!-- ÁREA CENTRAL -->
+  <div class="chat">
+    <div class="chat-hdr">
+      <span class="title" id="ch-title" data-i18n="viewAll">Todos los libros</span>
+      <span class="sub" id="ch-sub"></span>
+      <div style="margin-left:auto;display:flex;align-items:center;gap:8px">
+        <select id="sort-select" class="sort-select" onchange="renderBooks()" title="Ordenar lista de libros">
+          <option value="filename_asc">&#8645; Ordenar: Archivo (A &rarr; Z)</option>
+          <option value="title_asc">&#8645; Ordenar: Título Real (A &rarr; Z)</option>
+          <option value="author_asc">&#8645; Ordenar: Autor (A &rarr; Z)</option>
+          <option value="status">&#8645; Ordenar: Estado (Duplicados / Pendientes)</option>
+          <option value="size_desc">&#8645; Ordenar: Tamaño (Mayor a menor)</option>
+          <option value="pages_desc">&#8645; Ordenar: Páginas (Mayor a menor)</option>
+        </select>
+        <div class="srch" style="margin-left:0">
+          <input type="text" id="search" placeholder="Filtrar por título, autor, ISBN o archivo... (Ctrl+F)" oninput="renderBooks()">
+          <span class="cnt" id="s-cnt"></span>
+          <button class="btn-icon" id="btn-clear-search" onclick="clearSearch()" title="Limpiar filtro de búsqueda">&times;</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="work-body">
+      <div class="msgs" id="msgs">
+        <div class="welcome" id="welcome">
+          <h2 data-i18n="welcomeTitle">PDF Book Manager</h2>
+          <p data-i18n="welcomeSub">1. Carga tu carpeta de PDFs al instante.<br>2. Presiona <b>Analizar Libros</b> para detectar duplicados, título/autor real y metadatos con barra de progreso.<br>3. Presiona <b>Ejecutar Renombrado y Metadatos</b> para aplicar los cambios.</p>
+          <div style="display:flex;gap:10px;margin-top:8px">
+            <button class="btn btn-s" onclick="pickFolder()">&#128194; 1. Elegir Carpeta de Libros</button>
+            <button class="btn btn-info" onclick="startBatchAnalysis()">&#128269; 2. Analizar Libros</button>
+          </div>
+        </div>
+        <div class="book-grid hidden" id="book-grid"></div>
+      </div>
+
+      <!-- PANEL INSPECTOR / EDITOR DE METADATOS A LA DERECHA -->
+      <aside class="inspector hidden" id="inspector">
+        <div class="ins-hdr">
+          <h3 data-i18n="insTitle">Editor de Libro y Metadatos</h3>
+          <button class="btn-icon" onclick="closeInspector()" title="Cerrar panel">&times;</button>
+        </div>
+        <div class="ins-body">
+          <div class="meta-compare">
+            <h4 data-i18n="insCurrentFile">Archivo y Metadatos Actuales</h4>
+            <div class="mc-row"><span class="mc-k">Archivo actual:</span><span class="mc-v" id="ins-cur-fn">--</span></div>
+            <div class="mc-row"><span class="mc-k">Título en PDF:</span><span class="mc-v" id="ins-cur-title">--</span></div>
+            <div class="mc-row"><span class="mc-k">Autor en PDF:</span><span class="mc-v" id="ins-cur-author">--</span></div>
+            <div class="mc-row"><span class="mc-k">Páginas / Tamaño:</span><span class="mc-v" id="ins-cur-info">--</span></div>
+            <div class="mc-row"><span class="mc-k">Fuente detección:</span><span class="mc-v" id="ins-source">--</span></div>
+          </div>
+
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;gap:6px">
+            <span style="font-size:11px;font-weight:600;color:var(--accent)">Metadatos Reales a Diligenciar</span>
+            <div style="display:flex;gap:4px">
+              <button class="btn btn-info btn-sm" onclick="analyzeSingleById(S.selectedId)" title="Analizar este PDF">
+                &#128269; Analizar PDF
+              </button>
+              <button class="btn btn-s btn-sm" id="btn-online-lookup" onclick="lookupSelectedBookOnline()" title="Buscar en Google Books y Open Library">
+                &#127760; Online
+              </button>
+            </div>
+          </div>
+
+          <div class="field">
+            <label>Nombre real del libro (Título)</label>
+            <input type="text" id="ed-title" oninput="onEditorFieldChange()" placeholder="Ej: Cien años de soledad">
+          </div>
+          <div class="field">
+            <label>Autor(es)</label>
+            <input type="text" id="ed-author" oninput="onEditorFieldChange()" placeholder="Ej: Gabriel García Márquez">
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+            <div class="field">
+              <label>Año</label>
+              <input type="text" id="ed-year" oninput="onEditorFieldChange()" placeholder="Ej: 1967">
+            </div>
+            <div class="field">
+              <label>ISBN</label>
+              <input type="text" id="ed-isbn" oninput="onEditorFieldChange()" placeholder="978...">
+            </div>
+          </div>
+          <div class="field">
+            <label>Editorial</label>
+            <input type="text" id="ed-publisher" oninput="onEditorFieldChange()" placeholder="Ej: Editorial Sudamericana">
+          </div>
+          <div class="field">
+            <label>Categoría / Tema / Asunto</label>
+            <input type="text" id="ed-subject" oninput="onEditorFieldChange()" placeholder="Ej: Novela, Realismo mágico">
+          </div>
+          <div class="field">
+            <label>Nuevo nombre de archivo (.pdf)</label>
+            <input type="text" id="ed-filename" placeholder="Título - Autor.pdf">
+          </div>
+
+          <div class="field" id="ed-snippet-box">
+            <label>Extracto detectado en las primeras páginas</label>
+            <div id="ed-snippet" style="font-size:11px;color:var(--dim);background:var(--input);padding:8px;border-radius:6px;max-height:90px;overflow-y:auto;line-height:1.4"></div>
+          </div>
+        </div>
+        <div class="ins-foot">
+          <div class="btn-row">
+            <button class="btn btn-s" onclick="previewSelectedPdf()">&#128065; Ver PDF</button>
+            <button class="btn btn-s" onclick="clearInspectorFields()" title="Limpiar campos del formulario">&#129529; Clear</button>
+            <button class="btn btn-s" onclick="saveDraftOnly()">Guardar Borrador</button>
+          </div>
+          <button class="btn btn-p" id="btn-apply-single" onclick="applySelectedBook()">
+            &#10004; Aplicar Renombrado y Metadatos a este PDF
+          </button>
+        </div>
+      </aside>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL DE VISTA PREVIA Y LIMPIEZA DE DUPLICADOS -->
+<div class="modal-overlay hidden" id="dup-modal">
+  <div class="modal modal-lg">
+    <div class="modal-hdr">
+      <div>
+        <h2>Revisión y Eliminación de Libros Duplicados</h2>
+        <p>Verifica qué ejemplar se conservará en cada grupo antes de eliminar las copias repetidas</p>
+      </div>
+      <button class="btn-icon" onclick="closeDuplicatesModal()">&times;</button>
+    </div>
+    <div class="modal-body" id="dup-modal-body"></div>
+    <div class="modal-foot">
+      <button class="btn btn-s" onclick="closeDuplicatesModal()">Cerrar</button>
+      <button class="btn btn-d" id="btn-confirm-remove-dups" onclick="executeRemoveAllDuplicates()">
+        &#128465; Eliminar Duplicados Marcados
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL VISOR DE PDF INTEGRADO -->
+<div class="modal-overlay hidden" id="pdf-modal">
+  <div class="modal modal-xl">
+    <div class="modal-hdr">
+      <div>
+        <h2 id="pdf-modal-title">Vista Previa del Libro PDF</h2>
+        <p id="pdf-modal-sub"></p>
+      </div>
+      <button class="btn-icon" onclick="closePdfModal()" style="font-size:20px">&times;</button>
+    </div>
+    <div class="modal-body" style="padding:0;display:flex;flex:1;overflow:hidden">
+      <iframe id="pdf-frame" style="width:100%;height:100%;border:none;background:#fff"></iframe>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-p" onclick="closePdfModal()">Cerrar Visor</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL TÉRMINOS Y CONDICIONES -->
+<div class="modal-overlay hidden" id="terms-modal">
+  <div class="modal">
+    <div class="modal-hdr">
+      <div>
+        <h2>Términos y Condiciones de Uso</h2>
+        <p>PDF Book Manager &mdash; DMDevLabs</p>
+      </div>
+    </div>
+    <div class="modal-body">
+      <h3>1. Acerca de la aplicación</h3>
+      <p><strong>PDF Book Manager</strong> es una herramienta de escritorio desarrollada por <strong>DMDevLabs</strong> bajo licencia <strong>GNU General Public License v3 (GPL-3.0)</strong> para organizar bibliotecas de libros en PDF: detectar duplicados, renombrar archivos con su título y autor real, y escribir metadatos estándar en los documentos PDF.</p>
+      <h3>2. Privacidad y seguridad de tus archivos</h3>
+      <ul>
+        <li><strong>Procesamiento local:</strong> Tus archivos PDF jamás se suben a ningún servidor externo. Todo el cálculo de hashes SHA-256, lectura de páginas y escritura de metadatos ocurre localmente en tu equipo.</li>
+        <li><strong>Consultas de metadatos:</strong> Cuando la opción online está activa, únicamente se consulta el ISBN o el título/autor en las APIs públicas de Google Books y Open Library para obtener la ficha bibliográfica oficial.</li>
+        <li><strong>Protección contra pérdida accidental:</strong> Por defecto, la eliminación de duplicados envía los archivos a la Papelera de reciclaje de Windows o a la subcarpeta <code>_duplicados/</code>.</li>
+      </ul>
+      <h3>3. Respaldo previo obligatorio y responsabilidad del usuario</h3>
+      <ul>
+        <li><strong>Copia de seguridad recomendada:</strong> Antes de ejecutar operaciones masivas de renombrado, edición de metadatos internos o eliminación de duplicados, realiza una copia de respaldo de tu biblioteca.</li>
+        <li>El usuario asume plena responsabilidad sobre la titularidad o autorización de los libros organizados y sobre cualquier acción de modificación o borrado ejecutada.</li>
+      </ul>
+      <h3>4. No afiliación, exención de garantías e indemnidad</h3>
+      <ul>
+        <li>Esta herramienta es un proyecto independiente de DMDevLabs (Duver Marin · dmdevlabs.com) y <strong>no está afiliada, patrocinada ni respaldada por Google LLC (Google Books) ni por Internet Archive (Open Library)</strong>.</li>
+        <li>Se distribuye gratuitamente bajo licencia GNU GPL-3.0 estrictamente <strong>"TAL CUAL" (AS IS)</strong> y <strong>"SEGÚN DISPONIBILIDAD"</strong>, sin garantías expresas, implícitas ni legales (secciones 15 y 16 de GPL-3.0). Ni DMDevLabs ni Duver Marin serán responsables por pérdida de archivos, cambios de metadatos o daños directos, indirectos o consecuentes; el usuario acepta mantenerlos indemnes ante cualquier reclamación sobre los documentos gestionados.</li>
+      </ul>
+      <h3>5. Ley aplicable, jurisdicción y contacto</h3>
+      <p>Regido por las leyes de la <strong>República de Colombia</strong>; cualquier controversia no resuelta previamente en <strong>contacto@dmdevlabs.com</strong> se someterá a los jueces competentes de <strong>Bogotá D.C., Colombia</strong>.</p>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-p" onclick="closeTerms()">Aceptar y Cerrar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL MANUAL DE USUARIO -->
+<div class="modal-overlay hidden" id="manual-modal">
+  <div class="modal" style="max-width:650px">
+    <div class="modal-hdr">
+      <div>
+        <h2>Manual de Usuario</h2>
+        <p>Flujo en 3 pasos: Cargar &rarr; Analizar con barra de progreso &rarr; Ejecutar renombrado y metadatos</p>
+      </div>
+    </div>
+    <div class="modal-body">
+      <div class="manual-tabs">
+        <button class="manual-tab on" onclick="switchManualTab('m-pasos', this)">Paso a Paso</button>
+        <button class="manual-tab" onclick="switchManualTab('m-dups', this)">Duplicados</button>
+        <button class="manual-tab" onclick="switchManualTab('m-meta', this)">Nombres y Metadatos</button>
+      </div>
+
+      <div class="manual-page on" id="m-pasos">
+        <h3>Flujo de trabajo en 3 pasos</h3>
+        <div class="step"><div class="step-n">1</div><div class="step-t"><strong>Cargar Carpeta (Instantáneo)</strong><p>Al elegir tu carpeta con el botón <strong>"1. Cargar Carpeta"</strong>, la aplicación lista todos los archivos PDF de inmediato y limpia preliminarmente sus nombres sin quedarse bloqueada.</p></div></div>
+        <div class="step"><div class="step-n">2</div><div class="step-t"><strong>Analizar Libros (Con barra de progreso y tiempo estimado)</strong><p>Haz clic en <strong>"2. Analizar Libros"</strong>. Verás una barra de progreso en tiempo real indicando cuántos libros van hechos, cuántos faltan y el tiempo estimado restante mientras calcula hashes SHA-256, lee las primeras páginas de cada PDF y consulta Google Books / Open Library. Puedes detener el análisis cuando quieras.</p></div></div>
+        <div class="step"><div class="step-n">3</div><div class="step-t"><strong>Eliminar Duplicados y Ejecutar Renombrado</strong><p>Revisa los duplicados con <strong>"Revisar y Eliminar Duplicados"</strong> y finalmente presiona <strong>"3. Ejecutar Renombrado y Metadatos"</strong> para aplicar los nuevos nombres y escribir los metadatos dentro de los PDFs con barra de progreso.</p></div></div>
+      </div>
+
+      <div class="manual-page" id="m-dups">
+        <h3>Detección inteligente de duplicados</h3>
+        <div class="feat"><div class="feat-icon">&#128272;</div><div class="feat-info"><strong>Nivel 1: Duplicado Exacto (Hash SHA-256)</strong><p>Detecta archivos 100% idénticos byte por byte aunque tengan nombres totalmente distintos.</p></div></div>
+        <div class="feat"><div class="feat-icon">&#128214;</div><div class="feat-info"><strong>Nivel 2: Mismo ISBN o Mismo Libro</strong><p>Detecta ejemplares del mismo libro que tienen el mismo ISBN o el mismo contenido textual en sus primeras páginas.</p></div></div>
+      </div>
+
+      <div class="manual-page" id="m-meta">
+        <h3>Renombrado y Metadatos Internos del PDF</h3>
+        <ul>
+          <li><strong>Diligencia los metadatos internos del PDF:</strong> Escribe <code>/Title</code>, <code>/Author</code>, <code>/Subject</code> y <code>/Keywords</code> (ISBN, Editorial, Año, Idioma) dentro del archivo PDF.</li>
+          <li><strong>Renombra el archivo en Windows:</strong> Cambia el nombre del archivo según el formato elegido (por defecto <code>Título - Autor.pdf</code>).</li>
+        </ul>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-p" onclick="closeManual()">Entendido</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast hidden" id="toast"></div>
+
+<script>
+var S = {
+  folder: '',
+  books: [],
+  stats: {},
+  filter: 'all',
+  selectedId: null,
+  lang: document.documentElement.getAttribute('data-lang') || 'es',
+  jobRunning: false,
+  jobStopRequested: false
+};
+
+var I18N = {
+  es: {
+    appTitle: 'PDF Book Manager',
+    btnChangeFolder: '📁 Cargar Carpeta',
+    btnRunFunc: '▶ Ejecutar',
+    btnClear: '🧹 Clear',
+    batchTitle: 'Menú de Funciones',
+    lblSelectFunc: 'Selecciona una función a realizar',
+    manualBtn: 'Manual',
+    themeLight: 'Modo Claro',
+    themeDark: 'Modo Oscuro',
+    langSwitchBtn: 'English'
+  },
+  en: {
+    appTitle: 'PDF Book Manager',
+    btnChangeFolder: '📁 Load Folder',
+    btnRunFunc: '▶ Execute',
+    btnClear: '🧹 Clear',
+    batchTitle: 'Functions Menu',
+    lblSelectFunc: 'Select a function to run',
+    manualBtn: 'Manual',
+    themeLight: 'Light Mode',
+    themeDark: 'Dark Mode',
+    langSwitchBtn: 'Español'
+  }
+};
+
+function esc(s) {
+  if (s === null || s === undefined) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function formatDuration(sec) {
+  sec = Math.max(0, Math.round(sec));
+  var m = Math.floor(sec / 60);
+  var s = sec % 60;
+  return (m < 10 ? '0' + m : m) + ':' + (s < 10 ? '0' + s : s);
+}
+
+function showToast(msg, isError) {
+  var el = document.getElementById('toast');
+  el.style.borderColor = isError ? 'var(--danger)' : 'var(--accent)';
+  el.innerHTML = (isError ? '&#9888; ' : '&#10004; ') + esc(msg);
+  el.classList.remove('hidden');
+  clearTimeout(window._toastTimer);
+  window._toastTimer = setTimeout(function(){ el.classList.add('hidden'); }, 4200);
+}
+
+function applyLang() {
+  var dict = I18N[S.lang] || I18N.es;
+  document.querySelectorAll('[data-i18n]').forEach(function(el){
+    var k = el.getAttribute('data-i18n');
+    if (dict[k]) el.innerHTML = dict[k];
+  });
+  document.getElementById('lang-btn').textContent = dict.langSwitchBtn;
+  updateThemeBtnLabel();
+}
+
+function toggleLang() {
+  S.lang = (S.lang === 'es') ? 'en' : 'es';
+  document.documentElement.setAttribute('data-lang', S.lang);
+  try { localStorage.setItem('pbm-lang', S.lang); } catch(e){}
+  applyLang();
+  renderBooks();
+}
+
+function updateThemeBtnLabel() {
+  var isLight = document.documentElement.getAttribute('data-theme') === 'light';
+  var dict = I18N[S.lang] || I18N.es;
+  document.getElementById('theme-btn').textContent = isLight ? dict.themeDark : dict.themeLight;
+}
+
+function toggleTheme() {
+  var cur = document.documentElement.getAttribute('data-theme');
+  var next = (cur === 'light') ? 'dark' : 'light';
+  if (next === 'dark') document.documentElement.removeAttribute('data-theme');
+  else document.documentElement.setAttribute('data-theme', 'light');
+  try { localStorage.setItem('pbm-theme', next); } catch(e){}
+  updateThemeBtnLabel();
+}
+
+/* ── Control de Barra de Progreso y Tiempo Estimado ── */
+function showProgress(actionLabel, done, total, currentFile, startTimeMs) {
+  var panel = document.getElementById('prog-panel');
+  panel.classList.remove('hidden');
+  var pct = total > 0 ? Math.round((done / total) * 100) : 0;
+  var rem = Math.max(0, total - done);
+  var elapsedSec = (Date.now() - startTimeMs) / 1000;
+
+  document.getElementById('prog-action-label').textContent = actionLabel;
+  document.getElementById('prog-current-file').textContent = currentFile ? ('— ' + currentFile) : '';
+  document.getElementById('prog-pct').textContent = pct + '%';
+  document.getElementById('prog-done').textContent = done;
+  document.getElementById('prog-total').textContent = total;
+  document.getElementById('prog-rem').textContent = rem;
+  document.getElementById('prog-elapsed').textContent = formatDuration(elapsedSec);
+  document.getElementById('prog-bar-fill').style.width = pct + '%';
+
+  var etaEl = document.getElementById('prog-eta');
+  if (done > 0 && rem > 0) {
+    var avgPerItem = elapsedSec / done;
+    var etaSec = avgPerItem * rem;
+    etaEl.textContent = 'Tiempo estimado: ~' + formatDuration(etaSec) + ' restantes';
+  } else if (rem === 0 && total > 0) {
+    etaEl.textContent = '¡Completado!';
+  } else {
+    etaEl.textContent = 'Tiempo estimado: calculando...';
+  }
+}
+
+function hideProgress() {
+  document.getElementById('prog-panel').classList.add('hidden');
+}
+
+function setButtonsDisabled(disabled) {
+  ['btn-pick', 'btn-run-func', 'btn-clear-all', 'btn-side-run', 'btn-side-clear', 'hdr-func-select', 'side-func-select'].forEach(function(id){
+    var el = document.getElementById(id);
+    if (el) el.disabled = disabled;
+  });
+}
+
+function toggleSec(hdrEl) {
+  var sec = hdrEl.closest('.sec');
+  if (sec) sec.classList.toggle('collapsed');
+}
+
+function syncFuncSelects(val) {
+  var h = document.getElementById('hdr-func-select');
+  var s = document.getElementById('side-func-select');
+  if (h && h.value !== val) h.value = val;
+  if (s && s.value !== val) s.value = val;
+}
+
+async function executeSelectedFunction() {
+  if (S.jobRunning) return;
+  var sel = document.getElementById('hdr-func-select') || document.getElementById('side-func-select');
+  var fn = sel ? sel.value : 'analyze_all';
+  if (fn === 'analyze_all') {
+    await startBatchAnalysis(false);
+  } else if (fn === 'analyze_local') {
+    await startBatchAnalysis(true);
+  } else if (fn === 'review_dups') {
+    openDuplicatesModal();
+  } else if (fn === 'apply_both') {
+    await startBatchApply('both');
+  } else if (fn === 'apply_rename') {
+    await startBatchApply('rename_only');
+  } else if (fn === 'apply_meta') {
+    await startBatchApply('meta_only');
+  } else if (fn === 'reload_folder') {
+    await loadFolderFast();
+  }
+}
+
+async function clearWorkspace() {
+  if (S.jobRunning) {
+    stopActiveJob();
+  }
+  try {
+    var r = await fetch('/api/clear', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ clearCache: false })
+    });
+    var data = await r.json();
+    document.getElementById('search').value = '';
+    closeInspector();
+    hideProgress();
+    S.filter = 'all';
+    document.querySelectorAll('#view-list .cl-item').forEach(function(li){
+      li.classList.toggle('on', li.getAttribute('data-filter') === 'all');
+    });
+    updateStateFromResponse(data);
+    showToast('Lista y estado limpiados (Clear). Puedes cargar una carpeta o recargar cuando gustes.');
+  } catch (e) {
+    showToast('Error al limpiar la vista: ' + e.message, true);
+  }
+}
+
+function clearSearch() {
+  var inp = document.getElementById('search');
+  if (inp && inp.value) {
+    inp.value = '';
+    renderBooks();
+    inp.focus();
+  }
+}
+
+function clearInspectorFields() {
+  ['ed-title', 'ed-author', 'ed-year', 'ed-isbn', 'ed-publisher', 'ed-subject'].forEach(function(id){
+    var el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  showToast('Campos del editor limpiados.');
+}
+
+function stopActiveJob() {
+  if (S.jobRunning) {
+    S.jobStopRequested = true;
+    document.getElementById('btn-stop-job').disabled = true;
+    document.getElementById('btn-stop-job').textContent = 'Deteniendo...';
+  }
+}
+
+async function initApp() {
+  applyLang();
+  try {
+    var r = await fetch('/api/config');
+    var data = await r.json();
+    if (data.settings) {
+      S.folder = data.settings.currentFolder || data.defaultFolder;
+      document.getElementById('hdr-folder-txt').textContent = S.folder;
+      document.getElementById('cfg-folder-input').value = S.folder;
+      document.getElementById('cfg-pattern').value = data.settings.renamePattern || '{titulo} - {autor}';
+      document.getElementById('cfg-online').checked = data.settings.useOnline !== false;
+      document.getElementById('cfg-recursive').checked = !!data.settings.recursive;
+      document.getElementById('cfg-dupmode').value = data.settings.duplicateMode || 'trash';
+    }
+    // Solo carga rápida de archivos al iniciar (no bloquea ni analiza hasta que el usuario lo pida)
+    await loadFolderFast();
+  } catch (e) {
+    console.error(e);
+  }
+}
+
+async function pickFolder() {
+  if (S.jobRunning) return;
+  try {
+    var r = await fetch('/api/pick-folder', { method: 'POST' });
+    var data = await r.json();
+    if (!data.cancelled && data.folder) {
+      S.folder = data.folder;
+      document.getElementById('hdr-folder-txt').textContent = S.folder;
+      document.getElementById('cfg-folder-input').value = S.folder;
+      await loadFolderFast();
+    }
+  } catch (e) {
+    showToast('Error al seleccionar carpeta: ' + e.message, true);
+  }
+}
+
+async function applyCustomFolderInput() {
+  if (S.jobRunning) return;
+  var val = document.getElementById('cfg-folder-input').value.trim();
+  if (!val) return;
+  try {
+    var r = await fetch('/api/set-folder', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ folder: val })
+    });
+    var data = await r.json();
+    if (!r.ok) {
+      showToast(data.error || 'Carpeta inválida', true);
+      return;
+    }
+    S.folder = data.folder;
+    document.getElementById('hdr-folder-txt').textContent = S.folder;
+    await loadFolderFast();
+  } catch (e) {
+    showToast('Error al cambiar carpeta', true);
+  }
+}
+
+/* ── PASO 1: Carga instantánea de todos los archivos PDF ── */
+async function loadFolderFast() {
+  if (S.jobRunning) return;
+  try {
+    var payload = {
+      folder: document.getElementById('cfg-folder-input').value.trim() || S.folder,
+      renamePattern: document.getElementById('cfg-pattern').value,
+      useOnline: document.getElementById('cfg-online').checked,
+      recursive: document.getElementById('cfg-recursive').checked,
+      duplicateMode: document.getElementById('cfg-dupmode').value
+    };
+    var r = await fetch('/api/load', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(payload)
+    });
+    var data = await r.json();
+    updateStateFromResponse(data);
+    if (!S.selectedId && S.books.length > 0) {
+      selectBook(S.books[0].id);
+    }
+    showToast('Se cargaron ' + S.books.length + ' archivo(s) PDF al instante. Presiona "2. Analizar Libros" cuando desees.');
+  } catch (e) {
+    showToast('Error al cargar carpeta: ' + e.message, true);
+  }
+}
+
+/* ── PASO 2: Analizar libros por lotes paralelos con barra de progreso y ETA ── */
+async function startBatchAnalysis(forceLocalOnly) {
+  if (S.jobRunning) return;
+  if (S.books.length === 0) {
+    await loadFolderFast();
+    if (S.books.length === 0) {
+      showToast('No hay archivos PDF en la carpeta actual.', true);
+      return;
+    }
+  }
+
+  // Si hay libros sin analizar, analizar primero los faltantes; si todos ya están analizados, re-analizar todos
+  var targets = S.books.filter(function(b){ return !b.analyzed; });
+  if (targets.length === 0) {
+    targets = S.books.slice();
+  }
+
+  S.jobRunning = true;
+  S.jobStopRequested = false;
+  var stopBtn = document.getElementById('btn-stop-job');
+  stopBtn.disabled = false;
+  stopBtn.innerHTML = '&#9209; Detener';
+  setButtonsDisabled(true);
+
+  var total = targets.length;
+  var startTime = Date.now();
+  var useOnline = forceLocalOnly ? false : document.getElementById('cfg-online').checked;
+  var renamePattern = document.getElementById('cfg-pattern').value;
+  var labelStr = forceLocalOnly ? 'Analizando PDFs en paralelo (modo rápido)...' : 'Analizando PDFs en paralelo...';
+  var BATCH_SIZE = 20;
+
+  showProgress(labelStr, 0, total, targets[0].filename, startTime);
+
+  // Crear mapa de índices para actualización O(1) sin bloquear el DOM
+  var indexById = {};
+  for (var k = 0; k < S.books.length; k++) {
+    indexById[S.books[k].id] = k;
+  }
+
+  var doneCount = 0;
+  for (var i = 0; i < total; i += BATCH_SIZE) {
+    if (S.jobStopRequested) break;
+    var chunk = targets.slice(i, i + BATCH_SIZE);
+    var chunkIds = chunk.map(function(x){ return x.id; });
+    showProgress(labelStr, doneCount, total, chunk[0].filename + ' (+' + chunk.length + ' en paralelo)', startTime);
+
+    try {
+      var isLast = (i + BATCH_SIZE >= total) && !S.jobStopRequested;
+      var r = await fetch('/api/analyze-batch', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+          bookIds: chunkIds,
+          isLast: isLast,
+          useOnline: useOnline,
+          renamePattern: renamePattern
+        })
+      });
+      var data = await r.json();
+      if (isLast && data.books) {
+        updateStateFromResponse(data);
+      } else if (data.batchBooks) {
+        for (var j = 0; j < data.batchBooks.length; j++) {
+          var upd = data.batchBooks[j];
+          var bIdx = indexById[upd.id];
+          if (bIdx !== undefined) S.books[bIdx] = upd;
+        }
+        if (data.stats) S.stats = data.stats;
+        renderStatsAndBadges();
+        renderBooks();
+      }
+    } catch (e) {
+      console.error('Error analizando lote', e);
+    }
+
+    doneCount = Math.min(total, i + chunk.length);
+    showProgress(labelStr, doneCount, total, chunk[chunk.length - 1].filename, startTime);
+  }
+
+  // Si se detuvo antes del último lote, ejecutar detección de duplicados sobre lo que ya se analizó
+  if (S.jobStopRequested) {
+    try {
+      var rf = await fetch('/api/analyze-finish', { method: 'POST' });
+      var df = await rf.json();
+      updateStateFromResponse(df);
+    } catch(e){}
+    showToast('Análisis pausado: ' + doneCount + ' de ' + total + ' libros analizados.');
+  } else {
+    showToast('¡Análisis completado! ' + doneCount + ' libros procesados y duplicados verificados.');
+  }
+
+  S.jobRunning = false;
+  S.jobStopRequested = false;
+  setButtonsDisabled(false);
+  setTimeout(hideProgress, 1200);
+}
+
+/* ── PASO 3: Ejecutar renombrado y/o escritura de metadatos por lotes paralelos con barra de progreso ── */
+async function startBatchApply(applyMode) {
+  if (S.jobRunning) return;
+  applyMode = applyMode || 'both';
+  var doRename = (applyMode === 'both' || applyMode === 'rename_only');
+  var writeMetadata = (applyMode === 'both' || applyMode === 'meta_only');
+
+  var targets = S.books.filter(function(b){
+    if (b.is_duplicate) return false;
+    if (applyMode === 'rename_only') return b.needs_rename;
+    if (applyMode === 'meta_only') return b.needs_metadata_update;
+    return b.needs_rename || b.needs_metadata_update;
+  });
+
+  if (targets.length === 0) {
+    showToast('No hay libros pendientes para la función seleccionada.');
+    return;
+  }
+
+  S.jobRunning = true;
+  S.jobStopRequested = false;
+  var stopBtn = document.getElementById('btn-stop-job');
+  stopBtn.disabled = false;
+  stopBtn.innerHTML = '&#9209; Detener';
+  setButtonsDisabled(true);
+
+  var total = targets.length;
+  var startTime = Date.now();
+  var doneCount = 0;
+  var updatedOk = 0;
+  var errCount = 0;
+  var BATCH_SIZE = 16;
+  var progTitle = applyMode === 'rename_only'
+    ? 'Renombrando archivos PDF en paralelo...'
+    : (applyMode === 'meta_only' ? 'Diligenciando metadatos internos PDF en paralelo...' : 'Ejecutando renombrado y metadatos PDF en paralelo...');
+
+  var indexById = {};
+  for (var k = 0; k < S.books.length; k++) {
+    indexById[S.books[k].id] = k;
+  }
+
+  showProgress(progTitle, 0, total, targets[0].filename, startTime);
+
+  for (var i = 0; i < total; i += BATCH_SIZE) {
+    if (S.jobStopRequested) break;
+    var chunk = targets.slice(i, i + BATCH_SIZE);
+    var chunkIds = chunk.map(function(x){ return x.id; });
+    var isLast = (i + BATCH_SIZE >= total) && !S.jobStopRequested;
+    showProgress(progTitle, doneCount, total, chunk[0].filename + ' (+' + chunk.length + ' en paralelo)', startTime);
+
+    try {
+      var r = await fetch('/api/books/apply', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+          bookIds: chunkIds,
+          writeMetadata: writeMetadata,
+          doRename: doRename,
+          isLast: isLast
+        })
+      });
+      var data = await r.json();
+      if (isLast && data.books) {
+        S.books = data.books;
+        S.stats = data.stats || S.stats;
+      } else if (data.batchBooks) {
+        for (var j = 0; j < data.batchBooks.length; j++) {
+          var upd = data.batchBooks[j];
+          var bIdx = indexById[upd.id];
+          if (bIdx !== undefined) S.books[bIdx] = upd;
+        }
+        if (data.stats) S.stats = data.stats;
+      }
+      updatedOk += (data.updatedCount || 0);
+      if (data.errors && data.errors.length > 0) errCount += data.errors.length;
+    } catch (e) {
+      errCount += chunk.length;
+    }
+
+    doneCount = Math.min(total, i + chunk.length);
+    renderStatsAndBadges();
+    renderBooks();
+    showProgress(progTitle, doneCount, total, chunk[chunk.length - 1].filename, startTime);
+  }
+
+  if (S.jobStopRequested) {
+    try {
+      var rf = await fetch('/api/analyze-finish', { method: 'POST' });
+      var df = await rf.json();
+      updateStateFromResponse(df);
+    } catch(e){}
+  }
+
+  S.jobRunning = false;
+  S.jobStopRequested = false;
+  setButtonsDisabled(false);
+  setTimeout(hideProgress, 1200);
+
+  if (errCount > 0) {
+    showToast('Finalizado: ' + updatedOk + ' actualizados, ' + errCount + ' con error.', true);
+  } else {
+    showToast('¡Listo! Se procesaron ' + updatedOk + ' libro(s) PDF correctamente.');
+  }
+}
+
+async function analyzeSingleById(bookId) {
+  if (!bookId || S.jobRunning) return;
+  try {
+    var r = await fetch('/api/analyze-one', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        bookId: bookId,
+        isLast: true,
+        useOnline: document.getElementById('cfg-online').checked,
+        renamePattern: document.getElementById('cfg-pattern').value
+      })
+    });
+    var data = await r.json();
+    updateStateFromResponse(data);
+    showToast('Libro analizado correctamente.');
+  } catch (e) {
+    showToast('Error al analizar libro: ' + e.message, true);
+  }
+}
+
+function updateStateFromResponse(data) {
+  if (data.folder) {
+    S.folder = data.folder;
+    document.getElementById('hdr-folder-txt').textContent = S.folder;
+    document.getElementById('cfg-folder-input').value = S.folder;
+  }
+  S.books = data.books || [];
+  S.stats = data.stats || {};
+  renderStatsAndBadges();
+  renderBooks();
+  if (S.selectedId) {
+    var stillExists = S.books.find(function(b){ return b.id === S.selectedId; });
+    if (stillExists) populateInspector(stillExists);
+    else closeInspector();
+  }
+}
+
+function renderStatsAndBadges() {
+  var st = S.stats;
+  var total = st.totalBooks || 0;
+  var analyzed = st.analyzedCount || 0;
+  var unanalyzed = st.unanalyzedCount || 0;
+
+  document.getElementById('st-total').textContent = total;
+  document.getElementById('st-analyzed').textContent = analyzed + ' hechos / ' + unanalyzed + ' faltan';
+  document.getElementById('st-rename').textContent = st.needsRenameCount || 0;
+  document.getElementById('st-meta').textContent = st.needsMetaCount || 0;
+  document.getElementById('st-dups').textContent = st.duplicatesCount || 0;
+  document.getElementById('st-size').textContent = st.totalSizeHuman || '0 B';
+  document.getElementById('st-reclaim').textContent = st.reclaimableSizeHuman || '0 B';
+
+  var pending = S.books.filter(function(b){ return !b.is_duplicate && (b.needs_rename || b.needs_metadata_update); }).length;
+  var dups = S.books.filter(function(b){ return !!b.duplicate_group_id; }).length;
+  var ready = S.books.filter(function(b){ return b.analyzed && !b.is_duplicate && !b.needs_rename && !b.needs_metadata_update; }).length;
+
+  document.getElementById('bdg-all').textContent = total;
+  document.getElementById('bdg-pending').textContent = pending;
+  document.getElementById('bdg-dups').textContent = (st.duplicatesCount || 0) + (dups ? ' (' + st.duplicateGroupsCount + ' grp)' : '');
+  document.getElementById('bdg-ready').textContent = ready;
+}
+
+function setViewFilter(f) {
+  S.filter = f;
+  document.querySelectorAll('#view-list .cl-item').forEach(function(li){
+    li.classList.toggle('on', li.getAttribute('data-filter') === f);
+  });
+  var titles = {
+    all: 'Todos los libros cargados',
+    pending: 'Libros pendientes por renombrar o actualizar metadatos',
+    duplicates: 'Grupos de libros duplicados',
+    ready: 'Libros organizados y con metadatos completos'
+  };
+  document.getElementById('ch-title').textContent = titles[f] || 'Libros';
+  renderBooks();
+}
+
+function getFilteredBooks() {
+  var q = (document.getElementById('search').value || '').trim().toLowerCase();
+  var sortEl = document.getElementById('sort-select');
+  var sortMode = sortEl ? sortEl.value : 'filename_asc';
+
+  var list = S.books.filter(function(b){
+    if (S.filter === 'pending' && (b.is_duplicate || (!b.needs_rename && !b.needs_metadata_update))) return false;
+    if (S.filter === 'duplicates' && !b.duplicate_group_id) return false;
+    if (S.filter === 'ready' && (!b.analyzed || b.is_duplicate || b.needs_rename || b.needs_metadata_update)) return false;
+    if (!q) return true;
+    var hay = [b.filename, b.suggested_filename, b.real_title, b.real_author, b.isbn, b.publisher, b.subject, b.duplicate_group_id].join(' ').toLowerCase();
+    return hay.indexOf(q) !== -1;
+  });
+
+  if (S.filter === 'duplicates') {
+    list.sort(function(a, b){
+      if (a.duplicate_group_id !== b.duplicate_group_id) return a.duplicate_group_id.localeCompare(b.duplicate_group_id);
+      return (b.keep_in_group ? 1 : 0) - (a.keep_in_group ? 1 : 0);
+    });
+  } else {
+    list.sort(function(a, b){
+      if (sortMode === 'title_asc') {
+        return (a.real_title || a.filename).localeCompare(b.real_title || b.filename, 'es', {sensitivity: 'base'});
+      } else if (sortMode === 'author_asc') {
+        var aa = a.real_author || 'zzzz';
+        var ba = b.real_author || 'zzzz';
+        return aa.localeCompare(ba, 'es', {sensitivity: 'base'});
+      } else if (sortMode === 'size_desc') {
+        return (b.size_bytes || 0) - (a.size_bytes || 0);
+      } else if (sortMode === 'pages_desc') {
+        return (b.pages || 0) - (a.pages || 0);
+      } else if (sortMode === 'status') {
+        var sa = a.is_duplicate ? 0 : ((a.needs_rename || a.needs_metadata_update) ? 1 : 2);
+        var sb = b.is_duplicate ? 0 : ((b.needs_rename || b.needs_metadata_update) ? 1 : 2);
+        if (sa !== sb) return sa - sb;
+      }
+      return (a.filename || '').localeCompare(b.filename || '', 'es', {numeric: true, sensitivity: 'base'});
+    });
+  }
+  return list;
+}
+
+function renderBooks() {
+  var welcome = document.getElementById('welcome');
+  var grid = document.getElementById('book-grid');
+  var list = getFilteredBooks();
+
+  var analyzedCnt = S.stats.analyzedCount || 0;
+  document.getElementById('ch-sub').textContent = list.length + ' mostrados | ' + analyzedCnt + ' de ' + S.books.length + ' analizados';
+  var q = (document.getElementById('search').value || '').trim();
+  document.getElementById('s-cnt').textContent = q ? (list.length + ' res.') : '';
+
+  if (S.books.length === 0) {
+    grid.classList.add('hidden');
+    welcome.classList.remove('hidden');
+    welcome.innerHTML = '<h2>No se encontraron archivos PDF en esta carpeta</h2>' +
+      '<p>Carpeta actual: <b>' + esc(S.folder) + '</b><br>Haz clic en <b>📁 1. Cargar Carpeta</b> para seleccionar la carpeta donde tienes tus libros PDF.</p>' +
+      '<div style="display:flex;gap:10px;margin-top:10px">' +
+      '<button class="btn btn-p" onclick="pickFolder()">📁 1. Seleccionar Carpeta con PDFs</button>' +
+      '<button class="btn btn-s" onclick="loadFolderFast()">&#8635; Recargar</button></div>';
+    return;
+  }
+
+  if (list.length === 0) {
+    grid.classList.add('hidden');
+    welcome.classList.remove('hidden');
+    welcome.innerHTML = '<h2>Sin libros en esta vista</h2><p>No hay archivos PDF que coincidan con el filtro seleccionado.</p>';
+    return;
+  }
+
+  welcome.classList.add('hidden');
+  grid.classList.remove('hidden');
+
+  var html = '';
+  for (var i = 0; i < list.length; i++) {
+    var b = list[i];
+    var cardCls = 'book-card';
+    if (b.id === S.selectedId) cardCls += ' selected';
+    if (b.is_duplicate) cardCls += ' dup-card';
+    else if (b.duplicate_group_id && b.keep_in_group) cardCls += ' keep-card';
+    else if (!b.analyzed) cardCls += ' unscanned-card';
+    else if (b.needs_rename || b.needs_metadata_update) cardCls += ' pending-card';
+    else cardCls += ' ready-card';
+
+    var statusPill = '';
+    if (!b.analyzed) {
+      statusPill = '<span class="pill src">&#9203; Cargado (Pendiente de Analizar)</span>';
+    } else if (b.is_duplicate) {
+      statusPill = '<span class="pill err">&#9888; Duplicado (' + esc(b.duplicate_group_id) + '): ' + esc(b.duplicate_reason) + '</span>';
+    } else if (b.duplicate_group_id && b.keep_in_group) {
+      statusPill = '<span class="pill ok">&#128737; Ejemplar a Conservar (' + esc(b.duplicate_group_id) + ')</span>';
+    } else if (!b.needs_rename && !b.needs_metadata_update) {
+      statusPill = '<span class="pill ok">&#10004; Nombre y Metadatos Listos</span>';
+    } else {
+      var pendParts = [];
+      if (b.needs_rename) pendParts.push('Renombrar');
+      if (b.needs_metadata_update) pendParts.push('Diligenciar Metadatos');
+      statusPill = '<span class="pill warn">&#9998; Listo para aplicar: ' + pendParts.join(' + ') + '</span>';
+    }
+
+    var srcPill = b.analyzed ? '<span class="pill src">' + esc(b.source || 'Análisis Local') + '</span>' : '';
+
+    var fmtBadge = (b.file_format || (b.filename && b.filename.toLowerCase().endsWith('.epub') ? 'EPUB' : 'PDF'));
+    var iconStyle = fmtBadge === 'EPUB' ? ' style="background:rgba(124,92,252,.14);color:var(--accent);border-color:rgba(124,92,252,.35)"' : '';
+
+    html += '<div class="' + cardCls + '" onclick="selectBook(\'' + b.id + '\')">' +
+      '<div class="bc-icon"' + iconStyle + '>' + esc(fmtBadge) + '<small>' + (b.pages ? (b.pages + 'p') : '...') + '</small></div>' +
+      '<div class="bc-main">' +
+        '<div class="bc-top">' +
+          '<span class="bc-title">' + esc(b.real_title || b.filename) + '</span>' +
+          (b.real_author ? '<span class="bc-author">&mdash; ' + esc(b.real_author) + '</span>' : '<span class="pill warn">Autor por detectar</span>') +
+          '<div class="bc-pills">' + statusPill + srcPill + '</div>' +
+        '</div>' +
+        '<div class="bc-rename-box">' +
+          '<div class="bc-fn-old"><span>📄 Actual:</span> <strong>' + esc(b.filename) + '</strong></div>' +
+          (b.needs_rename
+            ? '<div class="bc-fn-new"><span>✨ Nombre propuesto:</span> <span>' + esc(b.suggested_filename) + '</span></div>'
+            : '<div class="bc-fn-new" style="color:var(--dim)"><span>✔ Nombre de archivo correcto</span></div>') +
+        '</div>' +
+        '<div class="bc-meta-row">' +
+          '<span>Tamaño: <strong>' + esc(b.size_human) + '</strong></span>' +
+          (b.year ? '<span>Año: <strong>' + esc(b.year) + '</strong></span>' : '') +
+          (b.publisher ? '<span>Editorial: <strong>' + esc(b.publisher) + '</strong></span>' : '') +
+          (b.isbn ? '<span>ISBN: <strong>' + esc(b.isbn) + '</strong></span>' : '') +
+          (b.subject ? '<span>Categoría: <strong>' + esc(b.subject) + '</strong></span>' : '') +
+        '</div>' +
+        '<div class="bc-actions" onclick="event.stopPropagation()">' +
+          (!b.analyzed
+            ? '<button class="btn btn-info btn-sm" onclick="analyzeSingleById(\'' + b.id + '\')">&#128269; Analizar este libro</button>'
+            : '') +
+          '<button class="btn btn-s btn-sm" onclick="selectBook(\'' + b.id + '\')">&#9998; Editar</button>' +
+          '<button class="btn btn-s btn-sm" onclick="openPdfModal(\'' + b.id + '\')">&#128065; Ver PDF</button>' +
+          ((!b.is_duplicate && (b.needs_rename || b.needs_metadata_update))
+            ? '<button class="btn btn-p btn-sm" onclick="applyBookById(\'' + b.id + '\')">&#10004; Aplicar este libro</button>'
+            : '') +
+          (b.is_duplicate
+            ? '<button class="btn btn-s btn-sm" onclick="makeKeeper(\'' + b.id + '\')">&#128737; Conservar este</button>' +
+              '<button class="btn btn-d btn-sm" onclick="removeSingleDuplicate(\'' + b.id + '\')">&#128465; Eliminar Duplicado</button>'
+            : '') +
+        '</div>' +
+      '</div>' +
+    '</div>';
+  }
+  grid.innerHTML = html;
+}
+
+function selectBook(bookId) {
+  S.selectedId = bookId;
+  var b = S.books.find(function(x){ return x.id === bookId; });
+  if (!b) return;
+  populateInspector(b);
+  document.getElementById('inspector').classList.remove('hidden');
+  renderBooks();
+}
+
+function populateInspector(b) {
+  document.getElementById('ins-cur-fn').textContent = b.filename;
+  document.getElementById('ins-cur-title').textContent = b.current_title || (b.analyzed ? '(Vacío)' : '(Sin analizar aún)');
+  document.getElementById('ins-cur-author').textContent = b.current_author || (b.analyzed ? '(Vacío)' : '(Sin analizar aún)');
+  document.getElementById('ins-cur-info').textContent = (b.pages || '?') + ' págs. / ' + b.size_human;
+  document.getElementById('ins-source').textContent = b.source || 'Pendiente de analizar';
+
+  document.getElementById('ed-title').value = b.real_title || '';
+  document.getElementById('ed-author').value = b.real_author || '';
+  document.getElementById('ed-year').value = b.year || '';
+  document.getElementById('ed-isbn').value = b.isbn || '';
+  document.getElementById('ed-publisher').value = b.publisher || '';
+  document.getElementById('ed-subject').value = b.subject || '';
+  document.getElementById('ed-filename').value = b.suggested_filename || b.filename;
+  document.getElementById('ed-snippet').textContent = b.preview_snippet || (b.analyzed ? 'Sin texto extraíble en las primeras páginas.' : 'Presiona "Analizar PDF" para leer las primeras páginas del documento.');
+}
+
+function closeInspector() {
+  S.selectedId = null;
+  document.getElementById('inspector').classList.add('hidden');
+  renderBooks();
+}
+
+function onEditorFieldChange() {
+  var title = document.getElementById('ed-title').value.trim();
+  var author = document.getElementById('ed-author').value.trim();
+  var year = document.getElementById('ed-year').value.trim();
+  var pat = document.getElementById('cfg-pattern').value || '{titulo} - {autor}';
+
+  var name = pat;
+  if (!author) {
+    name = (pat.indexOf('{año}') !== -1 && year) ? (title + ' (' + year + ')') : title;
+  } else {
+    name = name.replace('{titulo}', title).replace('{autor}', author);
+    if (name.indexOf('{año}') !== -1) {
+      if (year) name = name.replace('{año}', year);
+      else name = name.replace(/\s*[\(\[]?\{año\}[\)\]]?/g, '');
+    }
+  }
+  name = name.replace(/\s*:\s*/g, ' - ').replace(/[<>:"/\\|?*]/g, '').trim();
+  var selBook = S.books.find(function(x){ return x.id === S.selectedId; });
+  var ext = (selBook && selBook.filename && selBook.filename.toLowerCase().endsWith('.epub')) ? '.epub' : '.pdf';
+  name = name.replace(/\.(pdf|epub)$/i, '');
+  if (name) name += ext;
+  if (name) document.getElementById('ed-filename').value = name;
+}
+
+async function saveDraftOnly() {
+  if (!S.selectedId) return null;
+  var payload = {
+    real_title: document.getElementById('ed-title').value.trim(),
+    real_author: document.getElementById('ed-author').value.trim(),
+    year: document.getElementById('ed-year').value.trim(),
+    isbn: document.getElementById('ed-isbn').value.trim(),
+    publisher: document.getElementById('ed-publisher').value.trim(),
+    subject: document.getElementById('ed-subject').value.trim(),
+    suggested_filename: document.getElementById('ed-filename').value.trim()
+  };
+  var r = await fetch('/api/books/' + encodeURIComponent(S.selectedId) + '/update-draft', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify(payload)
+  });
+  var data = await r.json();
+  if (r.ok && data.book) {
+    var idx = S.books.findIndex(function(x){ return x.id === S.selectedId; });
+    if (idx !== -1) S.books[idx] = data.book;
+    S.stats = data.stats || S.stats;
+    renderStatsAndBadges();
+    renderBooks();
+    showToast('Borrador guardado.');
+    return data.book;
+  }
+  return null;
+}
+
+async function lookupSelectedBookOnline() {
+  if (!S.selectedId) return;
+  var btn = document.getElementById('btn-online-lookup');
+  btn.disabled = true;
+  btn.textContent = '...';
+  try {
+    var payload = {
+      title: document.getElementById('ed-title').value.trim(),
+      author: document.getElementById('ed-author').value.trim(),
+      isbn: document.getElementById('ed-isbn').value.trim()
+    };
+    var r = await fetch('/api/books/' + encodeURIComponent(S.selectedId) + '/lookup', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(payload)
+    });
+    var data = await r.json();
+    if (data.found && data.book) {
+      var idx = S.books.findIndex(function(x){ return x.id === S.selectedId; });
+      if (idx !== -1) S.books[idx] = data.book;
+      S.stats = data.stats || S.stats;
+      populateInspector(data.book);
+      renderStatsAndBadges();
+      renderBooks();
+      showToast('Metadatos encontrados en ' + data.book.source);
+    } else {
+      showToast(data.message || 'No se encontraron resultados online', true);
+    }
+  } catch (e) {
+    showToast('Error al consultar API online', true);
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '&#127760; Online';
+  }
+}
+
+async function applySelectedBook() {
+  if (!S.selectedId) return;
+  await saveDraftOnly();
+  await applyBookById(S.selectedId);
+}
+
+async function applyBookById(bookId) {
+  try {
+    var r = await fetch('/api/books/apply', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ bookIds: [bookId], writeMetadata: true, doRename: true })
+    });
+    var data = await r.json();
+    updateStateFromResponse(data);
+    if (data.errors && data.errors.length > 0) {
+      showToast('Error: ' + data.errors[0].error, true);
+    } else {
+      showToast('Libro renombrado y metadatos PDF diligenciados correctamente.');
+    }
+  } catch (e) {
+    showToast('Error al aplicar cambios: ' + e.message, true);
+  }
+}
+
+async function onPatternChange() {
+  var pat = document.getElementById('cfg-pattern').value;
+  var r = await fetch('/api/pattern', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({ renamePattern: pat })
+  });
+  var data = await r.json();
+  updateStateFromResponse(data);
+}
+
+async function makeKeeper(bookId) {
+  var r = await fetch('/api/duplicates/select-keeper', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({ bookId: bookId })
+  });
+  var data = await r.json();
+  updateStateFromResponse(data);
+  if (!document.getElementById('dup-modal').classList.contains('hidden')) {
+    renderDuplicatesModalBody();
+  }
+  showToast('Ejemplar principal cambiado.');
+}
+
+async function removeSingleDuplicate(bookId) {
+  var mode = document.getElementById('cfg-dupmode').value;
+  var r = await fetch('/api/duplicates/remove', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({ bookIds: [bookId], mode: mode })
+  });
+  var data = await r.json();
+  updateStateFromResponse(data);
+  if (!document.getElementById('dup-modal').classList.contains('hidden')) {
+    renderDuplicatesModalBody();
+  }
+  showToast('Duplicado eliminado (' + (data.freedHuman || '0 B') + ' liberados).');
+}
+
+function openDuplicatesModal() {
+  renderDuplicatesModalBody();
+  document.getElementById('dup-modal').classList.remove('hidden');
+}
+
+function closeDuplicatesModal() {
+  document.getElementById('dup-modal').classList.add('hidden');
+}
+
+function renderDuplicatesModalBody() {
+  var body = document.getElementById('dup-modal-body');
+  var dupBooks = S.books.filter(function(b){ return !!b.duplicate_group_id; });
+  if (dupBooks.length === 0) {
+    var unanalyzed = S.stats.unanalyzedCount || 0;
+    body.innerHTML = '<div class="tip"><strong>No hay duplicados detectados.</strong> ' +
+      (unanalyzed > 0 ? ('Aún faltan <b>' + unanalyzed + ' libro(s) por analizar</b>. Presiona "2. Analizar Libros" para verificar duplicados por Hash SHA-256 e ISBN.') : 'Todos los libros analizados son únicos.') + '</div>';
+    document.getElementById('btn-confirm-remove-dups').disabled = true;
+    return;
+  }
+  document.getElementById('btn-confirm-remove-dups').disabled = false;
+
+  var groups = {};
+  dupBooks.forEach(function(b){
+    if (!groups[b.duplicate_group_id]) groups[b.duplicate_group_id] = [];
+    groups[b.duplicate_group_id].push(b);
+  });
+
+  var mode = document.getElementById('cfg-dupmode').value;
+  var modeText = mode === 'trash' ? 'Enviar a la Papelera de reciclaje' : (mode === 'folder' ? 'Mover a subcarpeta _duplicados/' : 'Eliminar permanentemente');
+
+  var html = '<div class="tip"><strong>Modo de limpieza seleccionado:</strong> ' + esc(modeText) +
+    ' &mdash; Espacio total a liberar: <strong>' + esc(S.stats.reclaimableSizeHuman || '0 B') + '</strong></div>';
+
+  Object.keys(groups).sort().forEach(function(gid){
+    var members = groups[gid];
+    html += '<div class="dup-grp">' +
+      '<div class="dup-grp-hdr"><span>Grupo ' + esc(gid) + ' &mdash; ' + esc(members[0].real_title || members[0].filename) + '</span>' +
+      '<span class="pill warn">' + esc(members[0].duplicate_reason) + '</span></div>';
+
+    members.forEach(function(m){
+      var isKeep = m.keep_in_group && !m.is_duplicate;
+      html += '<div class="dup-row ' + (isKeep ? 'keep' : 'rem') + '">' +
+        '<div style="min-width:0;flex:1">' +
+          '<div style="font-size:12.5px;font-weight:600;color:var(--text)">' +
+            (isKeep ? '&#128737; CONSERVAR: ' : '&#128465; ELIMINAR COPIA: ') + esc(m.filename) +
+          '</div>' +
+          '<div style="font-size:11px;color:var(--dim)">Tamaño: ' + esc(m.size_human) + ' | Páginas: ' + (m.pages || '?') + ' | SHA-256: ' + esc((m.sha256 || '').slice(0,12)) + '...</div>' +
+        '</div>' +
+        '<div style="display:flex;gap:6px">' +
+          '<button class="btn btn-s btn-sm" onclick="openPdfModal(\'' + m.id + '\')">&#128065; Ver</button>' +
+          (!isKeep
+            ? '<button class="btn btn-s btn-sm" onclick="makeKeeper(\'' + m.id + '\')">Conservar este</button>' +
+              '<button class="btn btn-d btn-sm" onclick="removeSingleDuplicate(\'' + m.id + '\')">Borrar</button>'
+            : '<span class="badge accent">Principal</span>') +
+        '</div>' +
+      '</div>';
+    });
+    html += '</div>';
+  });
+
+  body.innerHTML = html;
+}
+
+async function executeRemoveAllDuplicates() {
+  var mode = document.getElementById('cfg-dupmode').value;
+  var btn = document.getElementById('btn-confirm-remove-dups');
+  btn.disabled = true;
+  try {
+    var r = await fetch('/api/duplicates/remove', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ mode: mode })
+    });
+    var data = await r.json();
+    updateStateFromResponse(data);
+    closeDuplicatesModal();
+    showToast('Se eliminaron ' + (data.removedCount || 0) + ' duplicados (' + (data.freedHuman || '0 B') + ' liberados).');
+  } catch (e) {
+    showToast('Error al eliminar duplicados: ' + e.message, true);
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+function openPdfModal(bookId) {
+  var b = S.books.find(function(x){ return x.id === bookId; });
+  if (!b) return;
+  document.getElementById('pdf-modal-title').textContent = b.real_title || b.filename;
+  document.getElementById('pdf-modal-sub').textContent = b.filename + ' (' + b.size_human + ')';
+  document.getElementById('pdf-frame').src = '/api/books/' + encodeURIComponent(bookId) + '/pdf';
+  document.getElementById('pdf-modal').classList.remove('hidden');
+}
+
+function previewSelectedPdf() {
+  if (S.selectedId) openPdfModal(S.selectedId);
+}
+
+function closePdfModal() {
+  document.getElementById('pdf-frame').src = 'about:blank';
+  document.getElementById('pdf-modal').classList.add('hidden');
+}
+
+function showTerms() { document.getElementById('terms-modal').classList.remove('hidden'); }
+function closeTerms() { document.getElementById('terms-modal').classList.add('hidden'); }
+function showManual() { document.getElementById('manual-modal').classList.remove('hidden'); }
+function closeManual() { document.getElementById('manual-modal').classList.add('hidden'); }
+
+function switchManualTab(pageId, btnEl) {
+  document.querySelectorAll('.manual-tab').forEach(function(b){ b.classList.remove('on'); });
+  document.querySelectorAll('.manual-page').forEach(function(p){ p.classList.remove('on'); });
+  btnEl.classList.add('on');
+  document.getElementById(pageId).classList.add('on');
+}
+
+document.addEventListener('keydown', function(e){
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'f') {
+    e.preventDefault();
+    document.getElementById('search').focus();
+  } else if (e.key === 'Escape') {
+    closePdfModal();
+    closeDuplicatesModal();
+    closeTerms();
+    closeManual();
+  }
+});
+
+window.addEventListener('DOMContentLoaded', initApp);
+</script>
+</body>
+</html>
