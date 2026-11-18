@@ -11,3 +11,4 @@ libros/_duplicados/
 
 # Preferencias locales (ruta de la carpeta del usuario)
 settings.json
+version_info.txt

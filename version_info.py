@@ -1,7 +1,7 @@
 """Generate version_info.txt for PyInstaller --version-file."""
 import os
 
-VERSION = (1, 1, 0, 0)
+VERSION = (1, 1, 1, 0)
 
 info = f"""# UTF-8
 VSVersionInfo(
@@ -21,11 +21,11 @@ VSVersionInfo(
         StringTable(
           '040904B0',
           [
-            StringStruct('CompanyName', 'DMDevLabs'),
+            StringStruct('CompanyName', 'DMDev Labs'),
             StringStruct('FileDescription', 'PDF Book Manager - Gestor de duplicados, nombres y metadatos de libros PDF'),
             StringStruct('FileVersion', '{VERSION[0]}.{VERSION[1]}.{VERSION[2]}.{VERSION[3]}'),
             StringStruct('InternalName', 'PDF Book Manager'),
-            StringStruct('LegalCopyright', 'Copyright (C) 2026 DMDevLabs - GPL-3.0 License'),
+            StringStruct('LegalCopyright', 'Copyright (C) 2026 DMDev Labs - GPL-3.0 License'),
             StringStruct('OriginalFilename', 'PDF Book Manager.exe'),
             StringStruct('ProductName', 'PDF Book Manager'),
             StringStruct('ProductVersion', '{VERSION[0]}.{VERSION[1]}.{VERSION[2]}'),

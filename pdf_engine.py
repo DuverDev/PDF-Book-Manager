@@ -28,6 +28,9 @@ import urllib.parse
 import requests
 from pypdf import PdfReader, PdfWriter
 
+# Identifica la app ante Google Books y Open Library (piden un User-Agent propio), sin datos personales.
+USER_AGENT = "PDFBookManager/1.1.1 (DMDev Labs; +https://dmdevlabs.com)"
+
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Constantes y Expresiones Regulares
@@ -831,7 +834,7 @@ def query_google_books(isbn: str = "", title: str = "", author: str = "", timeou
             q = " ".join(q_parts)
 
         url = f"https://www.googleapis.com/books/v1/volumes?q={urllib.parse.quote(q)}&maxResults=5"
-        resp = requests.get(url, timeout=timeout, headers={"User-Agent": "PDFBookManager/1.0"})
+        resp = requests.get(url, timeout=timeout, headers={"User-Agent": USER_AGENT})
         if resp.status_code != 200:
             return None
         data = resp.json()
@@ -840,7 +843,7 @@ def query_google_books(isbn: str = "", title: str = "", author: str = "", timeou
             # Reintentar búsqueda combinada más flexible
             q2 = f"{title} {author}".strip()
             url2 = f"https://www.googleapis.com/books/v1/volumes?q={urllib.parse.quote(q2)}&maxResults=5"
-            resp2 = requests.get(url2, timeout=timeout, headers={"User-Agent": "PDFBookManager/1.0"})
+            resp2 = requests.get(url2, timeout=timeout, headers={"User-Agent": USER_AGENT})
             if resp2.status_code == 200:
                 items = resp2.json().get("items") or []
 
@@ -949,7 +952,7 @@ def query_open_library(isbn: str = "", title: str = "", author: str = "", timeou
                 params["author"] = author
             url = f"https://openlibrary.org/search.json?{urllib.parse.urlencode(params)}"
 
-        resp = requests.get(url, timeout=timeout, headers={"User-Agent": "PDFBookManager/1.0"})
+        resp = requests.get(url, timeout=timeout, headers={"User-Agent": USER_AGENT})
         if resp.status_code != 200:
             return None
         docs = resp.json().get("docs") or []
@@ -1894,7 +1897,7 @@ def write_pdf_metadata_and_rename(
                     "/Author": (author or "").strip(),
                     "/Subject": (subject or "").strip(),
                     "/Keywords": keywords_str,
-                    "/Producer": "PDF Book Manager — DMDevLabs",
+                    "/Producer": "PDF Book Manager — DMDev Labs",
                 }
                 writer.add_metadata(new_meta)
 

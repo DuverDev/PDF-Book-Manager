@@ -1,5 +1,16 @@
 # Cambios / Changelog
 
+## 1.1.1 — 2026-11-18
+
+### Seguridad
+- **Servidor local blindado:** la API en `127.0.0.1` solo atiende a la propia ventana de la app. Rechaza peticiones de otros sitios web (CSRF) y de otros dominios (DNS rebinding), que antes podían renombrar libros o enviar duplicados a la papelera. Con 5 pruebas nuevas.
+
+### Legal y marca
+- Condiciones de uso iguales a las de [dmdevlabs.com/terminos](https://dmdevlabs.com/terminos), en español e inglés (cambian con el idioma de la app) y en `TERMINOS.md`.
+- Licencia GPL-3.0 completa en `LICENSE`; marca unificada como **DMDev Labs** (también en el campo `/Producer` de los PDF).
+- User-Agent propio para Google Books y Open Library, sin datos personales.
+- `settings.json` (preferencias locales) y `version_info.txt` (generado) quedan fuera de git.
+
 ## 1.1.0 — 2026-11-14
 
 ### Interfaz, legal y pruebas

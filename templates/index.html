@@ -437,7 +437,7 @@ select option{background:var(--side);color:var(--text)}
 
     <div class="side-foot">
       <a href="#" onclick="showTerms();return false" data-i18n="termsLink">Términos y Condiciones</a>
-      <div class="brand">DMDevLabs &copy; 2026</div>
+      <div class="brand">DMDev Labs &copy; 2026</div>
     </div>
   </aside>
 
@@ -599,34 +599,44 @@ select option{background:var(--side);color:var(--text)}
   <div class="modal">
     <div class="modal-hdr">
       <div>
-        <h2>Términos y Condiciones de Uso</h2>
-        <p>PDF Book Manager &mdash; DMDevLabs</p>
+        <h2 data-i18n="termsTitle">Términos y Condiciones de Uso</h2>
+        <p>PDF Book Manager &mdash; DMDev Labs</p>
       </div>
     </div>
     <div class="modal-body">
-      <h3>1. Acerca de la aplicación</h3>
-      <p><strong>PDF Book Manager</strong> es una herramienta de escritorio desarrollada por <strong>DMDevLabs</strong> bajo licencia <strong>GNU General Public License v3 (GPL-3.0)</strong> para organizar bibliotecas de libros en PDF: detectar duplicados, renombrar archivos con su título y autor real, y escribir metadatos estándar en los documentos PDF.</p>
-      <h3>2. Privacidad y seguridad de tus archivos</h3>
-      <ul>
-        <li><strong>Procesamiento local:</strong> Tus archivos PDF jamás se suben a ningún servidor externo. Todo el cálculo de hashes SHA-256, lectura de páginas y escritura de metadatos ocurre localmente en tu equipo.</li>
-        <li><strong>Consultas de metadatos:</strong> Cuando la opción online está activa, únicamente se consulta el ISBN o el título/autor en las APIs públicas de Google Books y Open Library para obtener la ficha bibliográfica oficial.</li>
-        <li><strong>Protección contra pérdida accidental:</strong> Por defecto, la eliminación de duplicados envía los archivos a la Papelera de reciclaje de Windows o a la subcarpeta <code>_duplicados/</code>.</li>
-      </ul>
-      <h3>3. Respaldo previo obligatorio y responsabilidad del usuario</h3>
-      <ul>
-        <li><strong>Copia de seguridad recomendada:</strong> Antes de ejecutar operaciones masivas de renombrado, edición de metadatos internos o eliminación de duplicados, realiza una copia de respaldo de tu biblioteca.</li>
-        <li>El usuario asume plena responsabilidad sobre la titularidad o autorización de los libros organizados y sobre cualquier acción de modificación o borrado ejecutada.</li>
-      </ul>
-      <h3>4. No afiliación, exención de garantías e indemnidad</h3>
-      <ul>
-        <li>Esta herramienta es un proyecto independiente de DMDevLabs (Duver Marin · dmdevlabs.com) y <strong>no está afiliada, patrocinada ni respaldada por Google LLC (Google Books) ni por Internet Archive (Open Library)</strong>.</li>
-        <li>Se distribuye gratuitamente bajo licencia GNU GPL-3.0 estrictamente <strong>"TAL CUAL" (AS IS)</strong> y <strong>"SEGÚN DISPONIBILIDAD"</strong>, sin garantías expresas, implícitas ni legales (secciones 15 y 16 de GPL-3.0). Ni DMDevLabs ni Duver Marin serán responsables por pérdida de archivos, cambios de metadatos o daños directos, indirectos o consecuentes; el usuario acepta mantenerlos indemnes ante cualquier reclamación sobre los documentos gestionados.</li>
-      </ul>
-      <h3>5. Ley aplicable, jurisdicción y contacto</h3>
-      <p>Regido por las leyes de la <strong>República de Colombia</strong>; cualquier controversia no resuelta previamente en <strong>contacto@dmdevlabs.com</strong> se someterá a los jueces competentes de <strong>Bogotá D.C., Colombia</strong>.</p>
+      <div data-terms-lang="es" lang="es">
+        <p>Al descargar, instalar o usar PDF Book Manager aceptas íntegramente estas condiciones, que son las mismas de <strong>dmdevlabs.com/terminos</strong>. Si no estás de acuerdo, no uses el programa.</p>
+        <h3>1. Entrega «tal cual» (as is) y ausencia de garantías</h3>
+        <p>PDF Book Manager y su código fuente se ofrecen de forma gratuita por DMDev Labs, bajo la licencia GNU GPL-3.0, con fines informativos, educativos o experimentales, estrictamente «tal cual» (as is) y «según disponibilidad» (as available), sin garantías de ningún tipo —expresas, implícitas ni legales—, incluyendo ausencia de errores, exactitud, comerciabilidad, no infracción o idoneidad para un propósito particular. Nada de esto constituye oferta comercial, contrato de servicios profesionales ni acuerdo de nivel de servicio (SLA).</p>
+        <h3>2. Exclusión y limitación de responsabilidad</h3>
+        <p>En la máxima medida permitida por la legislación aplicable (incluida la ley colombiana y las secciones 15 y 16 de la licencia GNU GPL-3.0), DMDev Labs no será responsable en ningún caso por daños directos, indirectos, incidentales, especiales, consecuentes o punitivos —incluyendo pérdida de información o corrupción de archivos— derivados de la descarga, instalación, ejecución, uso, mal uso o imposibilidad de uso del programa, incluso si se advirtió de la posibilidad de dichos daños. Quien lo usa lo hace bajo su exclusivo riesgo y responsabilidad, y debe hacer copias de seguridad previas de sus archivos.</p>
+        <h3>3. Uso legítimo y responsabilidad del usuario</h3>
+        <p>PDF Book Manager procesa los archivos en tu equipo y nunca sube tus PDF. Si activas la consulta en línea, solo envía el ISBN o el título y el autor a las API públicas de Google Books y Open Library. Los cambios de nombre, de metadatos internos y la eliminación de duplicados solo se hacen cuando los confirmas; por defecto los duplicados van a la Papelera de reciclaje o a la carpeta <code>_duplicados/</code>. DMDev Labs no suministra ni distribuye libros ni contenidos protegidos de terceros. Eres el único responsable de contar con los derechos de autor, licencias o permisos sobre los documentos que gestiones.</p>
+        <h3>4. Indemnidad</h3>
+        <p>Aceptas mantener indemne y eximir de toda responsabilidad, reclamación, sanción, pérdida o gasto a DMDev Labs frente a cualquier reclamación de terceros o autoridad derivada del uso indebido, ilícito o no autorizado que hagas del programa o de los archivos procesados con él.</p>
+        <h3>5. Marcas registradas de terceros y no afiliación</h3>
+        <p>DMDev Labs es un proyecto independiente. Google, Google Books, Internet Archive, Open Library, Microsoft y Windows son marcas de sus respectivos propietarios y se mencionan únicamente para describir compatibilidad. DMDev Labs no está afiliado, patrocinado, respaldado ni asociado oficialmente con ninguno de ellos.</p>
+        <h3>6. Ley aplicable y jurisdicción</h3>
+        <p>Estas condiciones se rigen por las leyes de la República de Colombia. Cualquier controversia que no se resuelva mediante reclamación directa previa al correo <strong>contacto@dmdevlabs.com</strong> se someterá a los jueces competentes de Bogotá D. C., Colombia.</p>
+      </div>
+      <div data-terms-lang="en" lang="en" class="hidden">
+        <p>By downloading, installing or using PDF Book Manager you agree in full to these terms, which are the same as <strong>dmdevlabs.com/terms</strong>. If you do not agree, do not use the program.</p>
+        <h3>1. Delivery "as is" and no warranties</h3>
+        <p>PDF Book Manager and its source code are provided free of charge by DMDev Labs under the GNU GPL-3.0 license, for informational, educational or experimental purposes, strictly "as is" and "as available", without warranties of any kind—express, implied or statutory—including freedom from bugs, accuracy, merchantability, non-infringement or fitness for a particular purpose. Nothing here constitutes a commercial offer, professional services agreement or service-level agreement (SLA).</p>
+        <h3>2. Exclusion and limitation of liability</h3>
+        <p>To the fullest extent permitted by applicable law (including Colombian law and Sections 15 and 16 of the GNU GPL-3.0 license), DMDev Labs shall not be liable under any legal theory for any direct, indirect, incidental, special, consequential or punitive damages—including data loss or file corruption—arising out of downloading, installing, running, using, misusing or being unable to use the program, even if advised of the possibility of such damages. Anyone who uses it does so at their own exclusive risk and must back up their files beforehand.</p>
+        <h3>3. Lawful use and user responsibility</h3>
+        <p>PDF Book Manager processes files on your device and never uploads your PDFs. If you turn on online lookup, it only sends the ISBN or the title and author to the public Google Books and Open Library APIs. Renaming, internal metadata changes and duplicate removal only happen when you confirm them; by default duplicates go to the Recycle Bin or to the <code>_duplicados/</code> folder. DMDev Labs does not supply or distribute books or third-party copyrighted content. You are solely responsible for holding the copyright, licenses or permissions over the documents you manage.</p>
+        <h3>4. Indemnification</h3>
+        <p>You agree to indemnify, defend and hold harmless DMDev Labs from and against any third-party or regulatory claims, losses, liabilities, fines or expenses arising from your unlawful, negligent or unauthorized use of the program or of any files processed with it.</p>
+        <h3>5. Third-party trademarks and non-affiliation</h3>
+        <p>DMDev Labs is an independent project. Google, Google Books, Internet Archive, Open Library, Microsoft and Windows are trademarks of their respective owners and are mentioned solely to describe compatibility. DMDev Labs is not affiliated with, sponsored by, endorsed by or officially associated with any of them.</p>
+        <h3>6. Applicable law and jurisdiction</h3>
+        <p>These terms are governed by the laws of the Republic of Colombia. Any dispute that cannot be resolved first through direct written contact at <strong>contacto@dmdevlabs.com</strong> shall be submitted to the competent courts of Bogotá D.C., Colombia.</p>
+      </div>
     </div>
     <div class="modal-foot">
-      <button class="btn btn-p" onclick="closeTerms()">Aceptar y Cerrar</button>
+      <button class="btn btn-p" onclick="closeTerms()" data-i18n="termsClose">Aceptar y Cerrar</button>
     </div>
   </div>
 </div>
@@ -700,7 +710,10 @@ var I18N = {
     manualBtn: 'Manual',
     themeLight: 'Modo Claro',
     themeDark: 'Modo Oscuro',
-    langSwitchBtn: 'English'
+    langSwitchBtn: 'English',
+    termsLink: 'Términos y Condiciones',
+    termsTitle: 'Términos y Condiciones de Uso',
+    termsClose: 'Aceptar y Cerrar'
   },
   en: {
     appTitle: 'PDF Book Manager',
@@ -712,7 +725,10 @@ var I18N = {
     manualBtn: 'Manual',
     themeLight: 'Light Mode',
     themeDark: 'Dark Mode',
-    langSwitchBtn: 'Español'
+    langSwitchBtn: 'Español',
+    termsLink: 'Terms & Conditions',
+    termsTitle: 'Terms of Use',
+    termsClose: 'Accept and Close'
   }
 };
 
@@ -742,6 +758,9 @@ function applyLang() {
   document.querySelectorAll('[data-i18n]').forEach(function(el){
     var k = el.getAttribute('data-i18n');
     if (dict[k]) el.innerHTML = dict[k];
+  });
+  document.querySelectorAll('[data-terms-lang]').forEach(function(el){
+    el.classList.toggle('hidden', el.getAttribute('data-terms-lang') !== (S.lang === 'en' ? 'en' : 'es'));
   });
   document.getElementById('lang-btn').textContent = dict.langSwitchBtn;
   updateThemeBtnLabel();
