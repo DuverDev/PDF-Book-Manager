@@ -79,3 +79,30 @@ def test_vista_previa_epub_aislada(client, tmp_path, monkeypatch):
     assert '<img src=x onerror="alert(1)">' not in cuerpo
     assert "&lt;img src=x" in cuerpo and "&lt;b&gt;Autor&lt;/b&gt;" in cuerpo
     assert "http-equiv" not in cuerpo
+
+
+def test_selector_de_carpeta_no_mete_la_ruta_en_powershell(client, monkeypatch):
+    """SEC-087: una carpeta con comillas no puede cerrar la cadena y ejecutar comandos."""
+    import server
+
+    maligna = "C:\\Libros\\x'; Start-Process calc; '"
+    monkeypatch.setitem(server._settings, "currentFolder", maligna)
+    monkeypatch.setattr(server, "_save_settings", lambda *_: None)
+    llamadas = []
+
+    def falso_run(args, **kwargs):
+        llamadas.append((args, kwargs))
+        return SimpleNamespace(stdout="", returncode=0)
+
+    from types import SimpleNamespace
+    monkeypatch.setattr(server.subprocess, "run", falso_run)
+    monkeypatch.setitem(__import__("sys").modules, "webview", None)  # sin pywebview: usa PowerShell
+
+    r = client.post("/api/pick-folder", base_url="http://127.0.0.1:5050",
+                    headers={"Origin": "http://127.0.0.1:5050", "Sec-Fetch-Site": "same-origin"})
+    assert r.status_code == 200 and r.json["cancelled"] is True
+    (args, kwargs), = llamadas
+    script = args[-1]
+    assert "Start-Process" not in script and maligna not in script
+    assert "$env:PBM_CARPETA_INICIAL" in script
+    assert kwargs["env"]["PBM_CARPETA_INICIAL"] == maligna

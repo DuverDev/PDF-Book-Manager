@@ -1,4 +1,4 @@
-# PDF Book Manager (v1.1.3) — Gestor de Libros PDF
+# PDF Book Manager (v1.1.4) — Gestor de Libros PDF
 
 Aplicación de escritorio en Python empaquetada como ejecutable `.exe` (**Flask + pywebview + SPA Tema Claro/Oscuro**) para revisar carpetas de libros en PDF, detectar y eliminar duplicados, renombrar archivos con su título y autor real, y diligenciar los metadatos internos del PDF.
 
@@ -41,6 +41,8 @@ pip install -r requirements.txt
 run_app.bat      &:: ejecutar en desarrollo
 build.bat        &:: genera dist\PDF Book Manager.exe y su .sha256
 ```
+
+`requirements.txt` es la lista de lo que usa la app. Los `.exe` publicados se compilan con `requirements.lock`: versiones exactas y su hash SHA-256 (`pip install --require-hashes --no-deps -r requirements.lock`). Para actualizarlo, ver la primera línea de ese archivo.
 
 Los releases oficiales los compila GitHub Actions (`windows-latest`) con el workflow **Release**.
 

@@ -1,5 +1,11 @@
 # Cambios / Changelog
 
+## 1.1.4 — 2026-11-19
+
+### Seguridad
+- **Selector de carpetas:** cuando no hay pywebview, el selector usa PowerShell, y la ruta de la carpeta iba pegada dentro del comando. Una carpeta con comillas (como `Libros de O'Reilly`) lo rompía, y un nombre preparado podía ejecutar comandos. Ahora la ruta llega por una variable de entorno. Con una prueba nueva.
+- **Dependencias fijadas con hash:** el `.exe` se compila con `requirements.lock`, que fija la versión exacta y el SHA-256 de cada paquete de Python (también PyInstaller y lo que necesita, que antes se instalaban sin fijar). Si alguien cambia un paquete en PyPI, la compilación falla en vez de meterlo en el ejecutable.
+
 ## 1.1.3 — 2026-11-19
 
 ### Seguridad

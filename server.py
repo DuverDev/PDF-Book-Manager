@@ -222,7 +222,9 @@ def pick_folder():
                 "Add-Type -AssemblyName System.Windows.Forms; "
                 "$f = New-Object System.Windows.Forms.FolderBrowserDialog; "
                 "$f.Description = 'Selecciona la carpeta con tus libros PDF'; "
-                f"$f.SelectedPath = '{_settings.get('currentFolder', str(DEFAULT_BOOKS_DIR))}'; "
+                # La ruta llega por una variable de entorno, nunca dentro del comando: una carpeta con
+                # comillas (`O'Reilly`, o un nombre preparado) rompía el selector o ejecutaba código (SEC-087)
+                "$f.SelectedPath = $env:PBM_CARPETA_INICIAL; "
                 "if ($f.ShowDialog() -eq 'OK') { Write-Output $f.SelectedPath }"
             )
             proc = subprocess.run(
@@ -230,6 +232,7 @@ def pick_folder():
                 capture_output=True,
                 text=True,
                 timeout=120,
+                env={**os.environ, "PBM_CARPETA_INICIAL": str(_settings.get("currentFolder", str(DEFAULT_BOOKS_DIR)))},
             )
             out = (proc.stdout or "").strip()
             if out and Path(out).is_dir():
