@@ -1,5 +1,11 @@
 # Cambios / Changelog
 
+## 1.1.3 — 2026-11-19
+
+### Seguridad
+- **Vista previa de EPUB aislada:** un EPUB malicioso podía traer JavaScript que se ejecutaba al abrir la vista previa, con acceso al servidor local de la app (podía borrar o renombrar libros). Ahora la vista previa se abre en un documento aislado (`Content-Security-Policy: sandbox`), sin scripts ni recursos externos, y el título y el autor del libro se escapan. Con una prueba nueva.
+- Todas las respuestas llevan `X-Content-Type-Options: nosniff`.
+
 ## 1.1.2 — 2026-11-18
 
 ### Compilación

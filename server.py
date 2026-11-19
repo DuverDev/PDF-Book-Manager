@@ -1,4 +1,5 @@
 from concurrent.futures import ThreadPoolExecutor
+import html
 import json
 import mimetypes
 import os
@@ -168,6 +169,7 @@ def _solo_peticiones_locales():
 @app.after_request
 def no_cache(response):
     response.headers["Cache-Control"] = "no-store"
+    response.headers.setdefault("X-Content-Type-Options", "nosniff")
     return response
 
 
@@ -751,10 +753,12 @@ def serve_pdf(book_id):
                     chunk = body_m.group(1) if body_m else raw
                     chunk = _re.sub(r"<img[^>]*>", "", chunk, flags=_re.IGNORECASE)
                     chunk = _re.sub(r"<svg[^>]*>.*?</svg>", "", chunk, flags=_re.DOTALL | _re.IGNORECASE)
+                    # <meta http-equiv="refresh"> llevaría la vista previa a otra página
+                    chunk = _re.sub(r"<meta\b[^>]*>", "", chunk, flags=_re.IGNORECASE)
                     if chunk.strip():
                         chapters_html.append(f"<section class='chap'>{chunk}</section>")
         except Exception as e:
-            chapters_html.append(f"<p>Error al abrir EPUB: {e}</p>")
+            chapters_html.append(f"<p>Error al abrir EPUB: {html.escape(str(e))}</p>")
         joined = "\n<hr>\n".join(chapters_html) if chapters_html else "<p>Sin vista previa de texto.</p>"
         doc = f"""<!DOCTYPE html><html><head><meta charset="utf-8"><style>
         body {{ font-family: Georgia, serif; max-width: 720px; margin: 24px auto; padding: 0 20px; line-height: 1.65; color: #1e293b; background: #f8fafc; }}
@@ -762,8 +766,15 @@ def serve_pdf(book_id):
         hr {{ border: none; border-top: 1px solid #cbd5e1; margin: 28px 0; }}
         .hdr {{ background: #e2e8f0; padding: 12px 16px; border-radius: 8px; margin-bottom: 20px; font-family: system-ui, sans-serif; font-size: 13px; }}
         </style></head><body>
-        <div class="hdr"><strong>EPUB:</strong> {b.real_title or b.filename} — <em>{b.real_author or ''}</em></div>
+        <div class="hdr"><strong>EPUB:</strong> {html.escape(b.real_title or b.filename)} — <em>{html.escape(b.real_author or '')}</em></div>
         {joined}
         </body></html>"""
-        return doc, 200, {"Content-Type": "text/html; charset=utf-8"}
+        # El HTML del libro viene de cualquier parte: un EPUB descargado puede traer <script>. Con `sandbox` la
+        # vista previa queda en un origen propio, sin scripts ni formularios, y no puede llamar a esta API
+        # (borrar o renombrar libros). `default-src 'none'` impide cargar nada de fuera (SEC-085).
+        return doc, 200, {
+            "Content-Type": "text/html; charset=utf-8",
+            "Content-Security-Policy": "sandbox; default-src 'none'; style-src 'unsafe-inline'; img-src data:",
+            "X-Content-Type-Options": "nosniff",
+        }
     return send_file(file_path, mimetype="application/pdf")

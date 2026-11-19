@@ -1,4 +1,4 @@
-# PDF Book Manager (v1.1.2) — Gestor de Libros PDF
+# PDF Book Manager (v1.1.3) — Gestor de Libros PDF
 
 Aplicación de escritorio en Python empaquetada como ejecutable `.exe` (**Flask + pywebview + SPA Tema Claro/Oscuro**) para revisar carpetas de libros en PDF, detectar y eliminar duplicados, renombrar archivos con su título y autor real, y diligenciar los metadatos internos del PDF.
 
